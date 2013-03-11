@@ -1,0 +1,14 @@
+uniform mat4 projMat;
+uniform mat4 viewMat;
+uniform mat4 modelMat;
+
+out vec4 color;
+
+in vec4 position;
+
+void main()
+{
+		color = gl_Color;
+    gl_TexCoord[0] = gl_MultiTexCoord0;
+		gl_Position = projMat * viewMat * modelMat * position;
+}
