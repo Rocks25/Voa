@@ -14,11 +14,12 @@ public:
 	~About(void);
 	void Render(GLShaderProgram *program);
 	void Init(SDL_Surface *window);
+	void Cleanup();
 	void Resize(int width, int height);
 private:
 	void InitTextures();
+	bool IsInitialized();
 
-	GLuint texture[6];
 	std::vector<BasicObject *> objects;
 	float alpha1,alpha2,arate1,arate2;
 	bool a1inc,a2inc;
@@ -31,5 +32,6 @@ private:
 	glm::vec3 dir1;
 	glm::vec3 dir2;
 	glm::vec2 ScreenCenter;
+	bool _Initialized;
 };
 

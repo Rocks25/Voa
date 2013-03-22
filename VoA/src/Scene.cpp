@@ -8,12 +8,20 @@ Scene::Scene(void)
 
 Scene::~Scene(void)
 {
-	for(unsigned int i=0;i<_entities.size();i++)
+	//Cleanup();
+}
+
+void Scene::Cleanup()
+{
+	if(!_entities.empty())
 	{
-		_entities[i]->Cleanup();
-		delete _entities[i];
+		for(unsigned int i=0;i<_entities.size();i++)
+		{
+			_entities[i]->Cleanup();
+			delete _entities[i];
+		}
+		_entities.clear();
 	}
-	_entities.clear();
 }
 
 void Scene::Init()

@@ -3,7 +3,7 @@ uniform mat4 viewMat;
 uniform mat4 modelMat;
 
 in vec4 position;
-out vec4 color;
+varying vec4 color;
 
 void main()
 {

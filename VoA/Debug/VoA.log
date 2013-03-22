@@ -1,15 +1,17 @@
-﻿Build started 3/10/2013 9:17:49 PM.
+﻿Build started 3/21/2013 9:02:42 PM.
      1>Project "C:\Users\Sean\Documents\Visual Studio 2008\Projects\VoA\VoA\VoA.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\CL.exe /c /I"C:\SDKs\SDL-1.2.15\include" /I"C:\SDKs\glm-0.9.4.2" /I"C:\SDKs\glew-1.7.0-win32\include" /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc110.pdb" /Gd /TP /analyze- /errorReport:prompt src\SDLWin.cpp
-         SDLWin.cpp
+         C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\CL.exe /c /I"C:\SDKs\SDL-1.2.15\include" /I"C:\SDKs\glm-0.9.4.2" /I"C:\SDKs\glew-1.7.0-win32\include" /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc110.pdb" /Gd /TP /analyze- /errorReport:prompt src\ship.cpp
+         ship.cpp
        Link:
          C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Sean\Documents\Visual Studio 2008\Projects\VoA\Debug\VoA.exe" /INCREMENTAL /NOLOGO /LIBPATH:"C:\SDKs\SDL-1.2.15\lib\x86" /LIBPATH:"C:\SDKs\glew-1.7.0-win32\lib" opengl32.lib glu32.lib SDL.lib SDLmain.lib SDL_image.lib SDL_ttf.lib glew32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NODEFAULTLIB:msvcrt.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\Sean\Documents\Visual Studio 2008\Projects\VoA\Debug\VoA.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Sean\Documents\Visual Studio 2008\Projects\VoA\Debug\VoA.lib" /MACHINE:X86 /SAFESEH:NO /ENTRY:mainCRTStartup Debug\About.obj
          Debug\BasicObject.obj
          Debug\Font.obj
+         Debug\GameMode.obj
          Debug\GLShader.obj
          Debug\GLShaderProgram.obj
          Debug\main.obj
+         Debug\KeyHandler.obj
          Debug\MainMenu.obj
          Debug\Entity.obj
          Debug\Mesh.obj
@@ -18,9 +20,10 @@
          Debug\Scene.obj
          Debug\SDLWin.obj
          Debug\ship.obj
+         Debug\TextureManager.obj
          VoA.vcxproj -> C:\Users\Sean\Documents\Visual Studio 2008\Projects\VoA\Debug\VoA.exe
      1>Done Building Project "C:\Users\Sean\Documents\Visual Studio 2008\Projects\VoA\VoA\VoA.vcxproj" (Build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:03.27
+Time Elapsed 00:00:02.99

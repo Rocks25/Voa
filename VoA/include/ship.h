@@ -15,9 +15,8 @@ class Ship : public Mesh
 {
 private:
     float size;
-    float width;
-    float height;
-    GLuint texture[2];
+    int width;
+    int height;
 	glm::mat4 modelMat;
 	float throttle;
 	GLuint _nVBOVertices;

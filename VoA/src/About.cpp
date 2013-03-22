@@ -1,24 +1,35 @@
 #include "../include/About.h"
 #include "../include/Plane.h"
 #include "../include/Font.h"
+#include "../include/TextureManager.h"
 
 About::About()
 {
 	a1inc=a2inc=true;
+	_Initialized=false;
 	ScreenCenter = glm::vec2(_width/2.0f, _height/2.0f);
 }
 
 About::~About(void)
 {
-	for(unsigned int i=0; i<objects.size(); i++)
+	Cleanup();
+}
+
+void About::Cleanup()
+{
+	if(!objects.empty())
 	{
-		delete objects[i];
+		for(unsigned int i=0; i<objects.size(); i++)
+		{
+			delete objects[i];
+		}
+		objects.clear();
 	}
-	objects.clear();
 }
 
 void About::Init(SDL_Surface *window)
 {
+	_Initialized=true;
 	_width = window->w;
 	_height = window->h;
 
@@ -47,16 +58,21 @@ void About::Init(SDL_Surface *window)
 
 void About::Render(GLShaderProgram *program)
 {
+	if(!IsInitialized())
+	{
+		MessageBox(NULL,"About class was not initialized","ERROR",MB_OK);
+		return;
+	}
 	int modelMatLoc = glGetUniformLocation(program->GetProgramID(),"modelMat");
 
 	
 	glm::vec4 pos = pos1*glm::vec4(1.0f,1.0f,1.0f,1.0f);
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE);
 	glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, texture[4]);
+	TextureManager::GetSingleton()->BindTexture("Particle1Alpha");
     program->SetUniformValue("alpha",1);
 	
-	glColor4f(1.0f,1.0f,1.0f,alpha1);
+	glColor4f(0.0f,0.0f,0.0f,alpha1);
 	if(alpha1+arate1<=0)
 	{
 		alpha1=0.0f;
@@ -90,14 +106,14 @@ void About::Render(GLShaderProgram *program)
 	}
 	glUniformMatrix4fv(modelMatLoc, 1, GL_FALSE,&pos1[0][0]);					// Send Model Matrix to Shader
 	glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture[0]);
+	TextureManager::GetSingleton()->BindTexture("Asteroid2");
     program->SetUniformValue("tex",0);
 	glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, texture[3]);
+    TextureManager::GetSingleton()->BindTexture("Particel2Alpha");
     program->SetUniformValue("alpha",1);
 	objects[0]->Render();
 	
-	glColor4f(1.0f,1.0f,1.0f,alpha2);
+	glColor4f(0.0f,0.0f,0.0f,alpha2);
 	if(alpha2+arate2<=0)
 	{
 		alpha2=0.0f;
@@ -131,14 +147,14 @@ void About::Render(GLShaderProgram *program)
 	}
 	glUniformMatrix4fv(modelMatLoc, 1, GL_FALSE,&pos2[0][0]);					// Send Model Matrix to Shader
 	glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture[1]);
+    TextureManager::GetSingleton()->BindTexture("Asteroid1");
     program->SetUniformValue("tex",0);
 	objects[1]->Render();
 
-	glColor4f(1.0f,1.0f,1.0f,1.0f);
+	glColor4f(.0f,0.0f,0.0f,1.0f);
 	glUniformMatrix4fv(modelMatLoc, 1, GL_FALSE,&pos3[0][0]);					// Send Model Matrix to Shader
 	glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture[2]);
+    TextureManager::GetSingleton()->BindTexture("Asteroids");
     program->SetUniformValue("tex",0);
 	objects[2]->Render();
 
@@ -154,23 +170,23 @@ void About::Render(GLShaderProgram *program)
 	glm::mat4 mat = glm::translate(glm::vec3(_width/1680.0f*300,_height/1050.0f*100,0));
 	//glm::mat4 mat = glm::translate(glm::vec3(0.0f));
 	glUniformMatrix4fv(modelMatLoc, 1, GL_FALSE,&mat[0][0]);					// Send Model Matrix to Shader
-	glColor4f(1.0f,1.0f,1.0f,1.0f);
+	glColor4f(0.0f,0.0f,0.0f,1.0f);
 	glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture[5]);
+    TextureManager::GetSingleton()->BindTexture("GreenHD");
     program->SetUniformValue("tex",0);
 	glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, texture[4]);
+    TextureManager::GetSingleton()->BindTexture("Partice1Alpha");
     program->SetUniformValue("alpha",1);
 	Font::Render("Variations on Asteroids",fon,col);
 	mat = glm::translate(glm::vec3(_width/1680.0f*1000,_height/1050.0f*525,0));
 	glUniformMatrix4fv(modelMatLoc, 1, GL_FALSE,&mat[0][0]);					// Send Model Matrix to Shader
-	Font::Render("Play Game", fon, col);
+	Font::Render("F1 - Play Game", fon, col);
 	mat = glm::translate(glm::vec3(_width/1680.0f*1000,_height/1050.0f*625,0));
 	glUniformMatrix4fv(modelMatLoc, 1, GL_FALSE,&mat[0][0]);					// Send Model Matrix to Shader
-	Font::Render("Options", fon, col);
+	Font::Render("F2 - Options", fon, col);
 	mat = glm::translate(glm::vec3(_width/1680.0f*1000,_height/1050.0f*725,0));
 	glUniformMatrix4fv(modelMatLoc, 1, GL_FALSE,&mat[0][0]);					// Send Model Matrix to Shader
-	Font::Render("Quit Game", fon, col);
+	Font::Render("Q - Quit Game", fon, col);
 }
 
 void About::Resize(int width, int height)
@@ -178,10 +194,11 @@ void About::Resize(int width, int height)
 	_width = width;
 	_height = height;
 	ScreenCenter = glm::vec2(_width/2.0f,_height/2.0f);
-	for(unsigned int i=0;i<objects.size();i++)
+	/*for(unsigned int i=0;i<objects.size();i++)
 	{
 		delete objects[i];
-	}
+	}*/
+	delete[] objects.data();
 	objects.clear();
 	Plane *p1 = new Plane(320/800.0f*_width, 240/600.0f*_height);
 	objects.push_back(p1);
@@ -193,113 +210,15 @@ void About::Resize(int width, int height)
 
 void About::InitTextures()
 {
-	glGenTextures(6,texture);
-    SDL_Surface *a = IMG_Load("images/about/asteroid2.jpg");
-	SDL_PixelFormat *format = a->format;
-	if(!a)
-	{
-		char buf[255]={0};
-		sprintf_s(buf,"Error loading image. '%s'!",IMG_GetError());
-		MessageBox(NULL,buf,"Init Error",MB_OK|MB_ICONERROR);
-		return;
-	}
-    glBindTexture( GL_TEXTURE_2D, texture[0] );
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_NEAREST);
-	if(format->Amask)
-		gluBuild2DMipmaps( GL_TEXTURE_2D, 4, a->w, a->h, GL_RGBA, GL_UNSIGNED_BYTE, a->pixels );
-	else
-		gluBuild2DMipmaps( GL_TEXTURE_2D, 4, a->w, a->h, GL_RGB, GL_UNSIGNED_BYTE, a->pixels );
-	SDL_FreeSurface(a);
+    TextureManager::GetSingleton()->AddTexture("images/about/asteroid2.jpg", "Asteroid2");
+	TextureManager::GetSingleton()->AddTexture("images/about/asteroid1.jpg", "Asteroid1");
+	TextureManager::GetSingleton()->AddTexture("images/about/asteroids.jpg", "Asteroids");
+	TextureManager::GetSingleton()->AddTexture("images/particle2_alpha.jpg", "Particle2Alpha");
+	TextureManager::GetSingleton()->AddTexture("images/particle1_alpha.jpg", "Particle1Alpha");
+	TextureManager::GetSingleton()->AddTexture("images/about/green-hd-14.jpg", "GreenHD");
+}
 
-	a = IMG_Load("images/about/asteroid1.jpg");
-	format = a->format;
-	if(!a)
-	{
-		char buf[255]={0};
-		sprintf_s(buf,"Error loading image. '%s'!",IMG_GetError());
-		MessageBox(NULL,buf,"Init Error",MB_OK|MB_ICONERROR);
-		return;
-	}
-    glBindTexture( GL_TEXTURE_2D, texture[1] );
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_NEAREST);
-	if(format->Amask)
-		gluBuild2DMipmaps( GL_TEXTURE_2D, 4, a->w, a->h, GL_RGBA, GL_UNSIGNED_BYTE, a->pixels );
-	else
-		gluBuild2DMipmaps( GL_TEXTURE_2D, 4, a->w, a->h, GL_RGB, GL_UNSIGNED_BYTE, a->pixels );
-	SDL_FreeSurface(a);
-
-	
-	a = IMG_Load("images/about/asteroids.jpg");
-	format = a->format;
-	if(!a)
-	{
-		char buf[255]={0};
-		sprintf_s(buf,"Error loading image. '%s'!",IMG_GetError());
-		MessageBox(NULL,buf,"Init Error",MB_OK|MB_ICONERROR);
-		return;
-	}
-    glBindTexture( GL_TEXTURE_2D, texture[2] );
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_NEAREST);
-	if(format->Amask)
-		gluBuild2DMipmaps( GL_TEXTURE_2D, 4, a->w, a->h, GL_RGBA, GL_UNSIGNED_BYTE, a->pixels );
-	else
-		gluBuild2DMipmaps( GL_TEXTURE_2D, 4, a->w, a->h, GL_RGB, GL_UNSIGNED_BYTE, a->pixels );
-	SDL_FreeSurface(a);
-	
-	a = IMG_Load("images/particle2_alpha.jpg");
-	format = a->format;
-	if(!a)
-	{
-		char buf[255]={0};
-		sprintf_s(buf,"Error loading image. '%s'!",IMG_GetError());
-		MessageBox(NULL,buf,"Init Error",MB_OK|MB_ICONERROR);
-		return;
-	}
-    glBindTexture( GL_TEXTURE_2D, texture[3] );
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_NEAREST);
-	if(format->Amask)
-		gluBuild2DMipmaps( GL_TEXTURE_2D, 4, a->w, a->h, GL_RGBA, GL_UNSIGNED_BYTE, a->pixels );
-	else
-		gluBuild2DMipmaps( GL_TEXTURE_2D, 4, a->w, a->h, GL_RGB, GL_UNSIGNED_BYTE, a->pixels );
-	SDL_FreeSurface(a);
-
-	a = IMG_Load("images/particle1_alpha.jpg");
-	format = a->format;
-	if(!a)
-	{
-		char buf[255]={0};
-		sprintf_s(buf,"Error loading image. '%s'!",IMG_GetError());
-		MessageBox(NULL,buf,"Init Error",MB_OK|MB_ICONERROR);
-		return;
-	}
-    glBindTexture( GL_TEXTURE_2D, texture[4] );
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_NEAREST);
-	if(format->Amask)
-		gluBuild2DMipmaps( GL_TEXTURE_2D, 4, a->w, a->h, GL_RGBA, GL_UNSIGNED_BYTE, a->pixels );
-	else
-		gluBuild2DMipmaps( GL_TEXTURE_2D, 4, a->w, a->h, GL_RGB, GL_UNSIGNED_BYTE, a->pixels );
-	SDL_FreeSurface(a);
-
-	a = IMG_Load("images/about/green-hd-14.jpg");
-	format = a->format;
-	if(!a)
-	{
-		char buf[255]={0};
-		sprintf_s(buf,"Error loading image. '%s'!",IMG_GetError());
-		MessageBox(NULL,buf,"Init Error",MB_OK|MB_ICONERROR);
-		return;
-	}
-    glBindTexture( GL_TEXTURE_2D, texture[5] );
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_NEAREST);
-	if(format->Amask)
-		gluBuild2DMipmaps( GL_TEXTURE_2D, 4, a->w, a->h, GL_RGBA, GL_UNSIGNED_BYTE, a->pixels );
-	else
-		gluBuild2DMipmaps( GL_TEXTURE_2D, 4, a->w, a->h, GL_RGB, GL_UNSIGNED_BYTE, a->pixels );
-	SDL_FreeSurface(a);
+bool About::IsInitialized()
+{
+	return _Initialized;
 }

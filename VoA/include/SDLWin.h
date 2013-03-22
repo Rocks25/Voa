@@ -8,9 +8,7 @@
 #include "Scene.h"
 #include "About.h"
 
-#define TICK_INTERVAL    30
-
-Uint32 TimerCallback(Uint32 interval, void *param);
+#define TICK_INTERVAL		30
 
 class SDLWin
 {
@@ -30,10 +28,14 @@ class SDLWin
         void Events(SDL_Event *event);
         void Cleanup();
 		Uint32 TimeLeft();
-		void ToggleProjectionType();
+		void To3D();
+		void To2D();
 		void InitTextures();
 		void InitGeometry();
 		void InitFramebuffer();
+		void InitKeyActions();
+		void TurnLeft();
+		void TurnRight();
 
         bool Running;
 		bool fullscreen;

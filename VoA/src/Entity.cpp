@@ -58,6 +58,14 @@ Mesh *Entity::GetMeshByName(const char *name)
 
 void Entity::Cleanup()
 {
+	if(!_Meshes.empty())
+	{
+		for(int i=0;i<_Meshes.size();i++)
+		{
+			delete _Meshes[i];
+		}
+		_Meshes.clear();
+	}
 }
 
 void Entity::Translate(float x, float y, float z)

@@ -10,6 +10,7 @@ class Scene
 public:
 	Scene(void);
 	~Scene(void);
+	virtual void Cleanup();
 	virtual void Init();
 	virtual void InitTextures();
 	void Translate(float x, float y, float z);

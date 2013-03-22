@@ -2,8 +2,7 @@ uniform sampler2D tex;
 uniform sampler2D alpha;
 uniform float blur;
 
-in vec4 color;
-out vec4 outputF;
+varying vec4 color;
 
 void main()
 {
@@ -24,6 +23,6 @@ void main()
       total+=weight;
    }
 //   sum=sum/samples+sum/total;
-   //sum.a=min(color.a,al);
+   sum.a=min(color.a,al);
    gl_FragColor = sum;
 }  

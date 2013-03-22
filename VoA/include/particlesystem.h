@@ -14,7 +14,6 @@ class ParticleSystem : public Mesh
 private:
     float   slowdown;
     float   zoom;
-	glm::mat4 modelMat;
 	glm::mat4 oldModelMat;
     glm::vec3 pos;
     glm::vec3 direction;
@@ -31,8 +30,9 @@ public:
     //ParticleSystem(float size, float strength, int numparticles, float growthRate);
 	~ParticleSystem();
 
-    void Init(float size, float strength, int numParticles, float growthRate);
-	void Render(GLShaderProgram *program, glm::mat4 modelMat=glm::mat4(1.0));
+    void Init();
+	void Setup(float size, float strength, int numParticles, float growthRate);
+	void Render(GLShaderProgram *program);
     glm::vec3 GetPositionVec();
     glm::mat4 GetPositionMat();
     glm::vec3 GetDirection();
