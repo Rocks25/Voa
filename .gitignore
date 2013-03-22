@@ -7,3 +7,8 @@
 *.lastbuildstate
 *.log
 *.tlog
+*.ilk
+*.pdb
+*.opensdf
+*.sdf
+*.lastbuildstate
