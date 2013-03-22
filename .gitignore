@@ -1,5 +1,7 @@
 config/site.php
 files/cache/*
-/VoA/Debug/*
-VoA.suo
-VoA.v11.suo
+[Dd]ebug
+*.suo
+*.vcproj
+*.vcxproj
+
