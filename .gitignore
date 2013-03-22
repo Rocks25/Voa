@@ -1,4 +1,5 @@
 config/site.php
 files/cache/*
-VoA/Debug/*
+/VoA/Debug/*
 VoA.suo
+VoA.v11.suo
