@@ -4,4 +4,9 @@ files/cache/*
 *.suo
 *.vcproj
 *.vcxproj
-
+*.sdf
+*.opensdf
+*.obj
+*.lastbuildstate
+*.log
+*.tlog
