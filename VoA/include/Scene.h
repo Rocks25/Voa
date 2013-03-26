@@ -8,7 +8,7 @@
 class Scene
 {
 public:
-	Scene(void);
+	Scene(char *name);
 	~Scene(void);
 	virtual void Cleanup();
 	virtual void Init();
@@ -21,9 +21,11 @@ public:
 	void Scale(glm::vec3 scale);
 	void AddEntity(Entity *ent);
 	Entity *GetEntityByName(const char *name);
-	void Render(GLShaderProgram *program);
+	void Render();
+	char *GetName();
 
 private:
+	char *_Name;
 	glm::mat4 projMat;
 	glm::mat4 viewMat;
 	glm::mat4 modelMat;

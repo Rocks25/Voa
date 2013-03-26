@@ -1,5 +1,6 @@
 #include "../include/particlesystem.h"
-#include "../include/myglext.h"
+#include "../include/WindowFunctions.h"
+#include "../include/WindowManager.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 
@@ -21,8 +22,9 @@ ParticleSystem::~ParticleSystem()
 	glDeleteTextures(1,ptexture);
 }
 
-void ParticleSystem::Render(GLShaderProgram *program)
+void ParticleSystem::Render()
 {
+	GLShaderProgram *program = WindowManager::GetSingleton()->GetRenderer()->GetCurrentShader();
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE);
 	program->Bind();
     

@@ -1,5 +1,5 @@
 #include "../include/Plane.h"
-#include "../include/myglext.h"
+#include "../include/WindowFunctions.h"
 
 
 Plane::Plane(float width,float height)

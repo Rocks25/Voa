@@ -20,15 +20,15 @@ private:
 	~TextureManager(void);			//
 
 	// Class Variables //
-	std::vector<TextureInfo> _Textures;
-	//Vector<TextureInfo> _Textures;
+	Vector<TextureInfo *> _Textures;
 	static TextureManager *_instance;
 
 public:
 	static TextureManager *GetSingleton();
 	//bool AddTexture(Texture *tex);	// Add a texture to the pool
 	bool AddTexture(char *filename, char *name=0);
-	TextureInfo GetTextureinfo(char *name);
+	TextureInfo *GetTextureinfo(char *name);
 	bool BindTexture(char *name);
+	void ReloadTextures();
 };
 

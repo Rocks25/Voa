@@ -1,6 +1,7 @@
 #include "../include/ship.h"
 #include "../include/GLShader.h"
 #include "../include/TextureManager.h"
+#include "../include/WindowManager.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 
@@ -22,9 +23,9 @@ void Ship::Init()
 	InitGeometry();
 }
 
-void Ship::Render(GLShaderProgram *program)
+void Ship::Render()
 {
-	program->Bind();
+	GLShaderProgram *program = WindowManager::GetSingleton()->GetRenderer()->GetCurrentShader();
     float newWidth = (width/2.0f)*size;
     float newHeight = (height/2.0f)*size;
 
@@ -86,9 +87,9 @@ void Ship::InitTextures()
 {
 	TextureManager::GetSingleton()->AddTexture("images/ship.jpg", "Ship");
 	TextureManager::GetSingleton()->AddTexture("images/ship_alpha.jpg", "Ship_Alpha");
-	TextureInfo info = TextureManager::GetSingleton()->GetTextureinfo("Ship");
-	width = info.width;
-	height = info.height;
+	TextureInfo *info = TextureManager::GetSingleton()->GetTextureinfo("Ship");
+	width = info->width;
+	height = info->height;
 }
 
 float Ship::GetSize()

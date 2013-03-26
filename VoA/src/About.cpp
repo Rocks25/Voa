@@ -2,12 +2,12 @@
 #include "../include/Plane.h"
 #include "../include/Font.h"
 #include "../include/TextureManager.h"
+#include "../include/WindowManager.h"
 
 About::About()
 {
 	a1inc=a2inc=true;
 	_Initialized=false;
-	ScreenCenter = glm::vec2(_width/2.0f, _height/2.0f);
 }
 
 About::~About(void)
@@ -27,15 +27,16 @@ void About::Cleanup()
 	}
 }
 
-void About::Init(SDL_Surface *window)
+void About::Init()
 {
 	_Initialized=true;
-	_width = window->w;
-	_height = window->h;
+	int width = WindowManager::GetSingleton()->GetWindowWidth();
+	int height = WindowManager::GetSingleton()->GetWindowHeight();
+	ScreenCenter = glm::vec2(width/2.0f, height/2.0f);
 
-	Plane *p1 = new Plane(320/800.0f*_width, 240/600.0f*_height);
-	Plane *p2 = new Plane(320/800.0f*_width, 240/600.0f*_height);
-	Plane *p3 = new Plane((float)_width, (float)_height);
+	Plane *p1 = new Plane(320/800.0f*width, 240/600.0f*height);
+	Plane *p2 = new Plane(320/800.0f*width, 240/600.0f*height);
+	Plane *p3 = new Plane((float)width, (float)height);
 	objects.push_back(p1);
 	objects.push_back(p2);
 	objects.push_back(p3);
@@ -56,8 +57,11 @@ void About::Init(SDL_Surface *window)
 	InitTextures();
 }
 
-void About::Render(GLShaderProgram *program)
+void About::Render()
 {
+	int width = WindowManager::GetSingleton()->GetWindowWidth();
+	int height = WindowManager::GetSingleton()->GetWindowHeight();
+	GLShaderProgram *program = WindowManager::GetSingleton()->GetRenderer()->GetCurrentShader();
 	if(!IsInitialized())
 	{
 		MessageBox(NULL,"About class was not initialized","ERROR",MB_OK);
@@ -78,8 +82,8 @@ void About::Render(GLShaderProgram *program)
 		alpha1=0.0f;
 		a1inc=true;
 		arate1=rand()%10/1000.0f+.005f;
-		float x = rand()%1000/1000.0f*_width-_width/ScreenCenter.x;
-		float y = rand()%1000/1000.0f*_height-_height/ScreenCenter.y;
+		float x = rand()%1000/1000.0f*width-width/ScreenCenter.x;
+		float y = rand()%1000/1000.0f*height-height/ScreenCenter.y;
 		float xCenter = ScreenCenter.x/2.0f;
 		float yCenter = ScreenCenter.y/2.0f;
 		float randx = rand()%1000/1000.0f;
@@ -119,8 +123,8 @@ void About::Render(GLShaderProgram *program)
 		alpha2=0.0f;
 		a2inc=true;
 		arate2=rand()%10/1000.0f+.005f;
-		float x = rand()%1000/1000.0f*_width-_width/ScreenCenter.x;
-		float y = rand()%1000/1000.0f*_height-_height/ScreenCenter.x;
+		float x = rand()%1000/1000.0f*width-width/ScreenCenter.x;
+		float y = rand()%1000/1000.0f*height-height/ScreenCenter.x;
 		float xCenter = ScreenCenter.x;
 		float yCenter = ScreenCenter.y;
 		float randx = rand()%1000/1000.0f;
@@ -158,7 +162,7 @@ void About::Render(GLShaderProgram *program)
     program->SetUniformValue("tex",0);
 	objects[2]->Render();
 
-	TTF_Font *fon = TTF_OpenFont("fonts/arial rounded.TTF",(int)(48/800.0f*_height));
+	TTF_Font *fon = TTF_OpenFont("fonts/arial rounded.TTF",(int)(48/800.0f*height));
 	if(!fon)
 	{
 		char buf[512];
@@ -167,7 +171,7 @@ void About::Render(GLShaderProgram *program)
 	}
 	SDL_Color col;
 	col.r = col.g = col.b = 255;
-	glm::mat4 mat = glm::translate(glm::vec3(_width/1680.0f*300,_height/1050.0f*100,0));
+	glm::mat4 mat = glm::translate(glm::vec3(width/1680.0f*300,height/1050.0f*100,0));
 	//glm::mat4 mat = glm::translate(glm::vec3(0.0f));
 	glUniformMatrix4fv(modelMatLoc, 1, GL_FALSE,&mat[0][0]);					// Send Model Matrix to Shader
 	glColor4f(0.0f,0.0f,0.0f,1.0f);
@@ -178,33 +182,33 @@ void About::Render(GLShaderProgram *program)
     TextureManager::GetSingleton()->BindTexture("Partice1Alpha");
     program->SetUniformValue("alpha",1);
 	Font::Render("Variations on Asteroids",fon,col);
-	mat = glm::translate(glm::vec3(_width/1680.0f*1000,_height/1050.0f*525,0));
+	mat = glm::translate(glm::vec3(width/1680.0f*1000,height/1050.0f*525,0));
 	glUniformMatrix4fv(modelMatLoc, 1, GL_FALSE,&mat[0][0]);					// Send Model Matrix to Shader
 	Font::Render("F1 - Play Game", fon, col);
-	mat = glm::translate(glm::vec3(_width/1680.0f*1000,_height/1050.0f*625,0));
+	mat = glm::translate(glm::vec3(width/1680.0f*1000,height/1050.0f*625,0));
 	glUniformMatrix4fv(modelMatLoc, 1, GL_FALSE,&mat[0][0]);					// Send Model Matrix to Shader
 	Font::Render("F2 - Options", fon, col);
-	mat = glm::translate(glm::vec3(_width/1680.0f*1000,_height/1050.0f*725,0));
+	mat = glm::translate(glm::vec3(width/1680.0f*1000,height/1050.0f*725,0));
 	glUniformMatrix4fv(modelMatLoc, 1, GL_FALSE,&mat[0][0]);					// Send Model Matrix to Shader
 	Font::Render("Q - Quit Game", fon, col);
 }
 
-void About::Resize(int width, int height)
+void About::Resize()
 {
-	_width = width;
-	_height = height;
-	ScreenCenter = glm::vec2(_width/2.0f,_height/2.0f);
+	int width = WindowManager::GetSingleton()->GetWindowWidth();
+	int height = WindowManager::GetSingleton()->GetWindowHeight();
+	ScreenCenter = glm::vec2(width/2.0f,height/2.0f);
 	/*for(unsigned int i=0;i<objects.size();i++)
 	{
 		delete objects[i];
 	}*/
 	delete[] objects.data();
 	objects.clear();
-	Plane *p1 = new Plane(320/800.0f*_width, 240/600.0f*_height);
+	Plane *p1 = new Plane(320/800.0f*width, 240/600.0f*height);
 	objects.push_back(p1);
-	Plane *p2 = new Plane(320/800.0f*_width, 240/600.0f*_height);
+	Plane *p2 = new Plane(320/800.0f*width, 240/600.0f*height);
 	objects.push_back(p2);
-	Plane *p3 = new Plane((float)_width,(float)_height);
+	Plane *p3 = new Plane((float)width,(float)height);
 	objects.push_back(p3);
 }
 

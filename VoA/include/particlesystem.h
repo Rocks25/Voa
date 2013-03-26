@@ -32,7 +32,7 @@ public:
 
     void Init();
 	void Setup(float size, float strength, int numParticles, float growthRate);
-	void Render(GLShaderProgram *program);
+	void Render();
     glm::vec3 GetPositionVec();
     glm::mat4 GetPositionMat();
     glm::vec3 GetDirection();

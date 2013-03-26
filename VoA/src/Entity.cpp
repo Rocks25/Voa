@@ -7,7 +7,6 @@ Entity::Entity(const char *name) : _modelMat(1.0f)
 	_Name = name;
 }
 
-
 Entity::~Entity(void)
 {
 }
@@ -60,7 +59,7 @@ void Entity::Cleanup()
 {
 	if(!_Meshes.empty())
 	{
-		for(int i=0;i<_Meshes.size();i++)
+		for(unsigned int i=0;i<_Meshes.size();i++)
 		{
 			delete _Meshes[i];
 		}
@@ -103,10 +102,10 @@ void Entity::ResetMatrix()
 	_modelMat = glm::mat4(1.0f);
 }
 
-void Entity::Render(GLShaderProgram *program)
+void Entity::Render()
 {
 	for(unsigned int i=0;i<_Meshes.size();i++)
 	{
-		_Meshes[i]->Render(program);
+		_Meshes[i]->Render();
 	}
 }

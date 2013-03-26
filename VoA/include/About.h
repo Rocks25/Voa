@@ -1,7 +1,7 @@
 #pragma once
 
 #include "BasicObject.h"
-#include "myglext.h"
+#include "WindowFunctions.h"
 #include "GLShaderProgram.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
@@ -12,10 +12,10 @@ class About
 public:
 	About();
 	~About(void);
-	void Render(GLShaderProgram *program);
-	void Init(SDL_Surface *window);
+	void Render();
+	void Init();
 	void Cleanup();
-	void Resize(int width, int height);
+	void Resize();
 private:
 	void InitTextures();
 	bool IsInitialized();
@@ -24,8 +24,6 @@ private:
 	float alpha1,alpha2,arate1,arate2;
 	bool a1inc,a2inc;
 	float a1rot,a2rot;
-	int _width;
-	int _height;
 	glm::mat4 pos1;
 	glm::mat4 pos2;
 	glm::mat4 pos3;

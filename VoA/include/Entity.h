@@ -24,7 +24,7 @@ public:
 	void Scale(float x, float y, float z);
 	void Scale(glm::vec3 scale);
 	void ResetMatrix();
-	void Render(GLShaderProgram *program);
+	void Render();
 
 private:
 	const char *_Name;

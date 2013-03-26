@@ -1,25 +1,26 @@
 #ifndef GLSHADERPROGRAM_H
 #define GLSHADERPROGRAM_H
 
-#include "../include/myglext.h"
-#include "../include/GLShader.h"
-#include <vector>
+#include "WindowFunctions.h"
+#include "GLShader.h"
+#include "vector.h"
 
 class GLShaderProgram
 {
     public:
-        GLShaderProgram();
+        GLShaderProgram(char *name);
         virtual ~GLShaderProgram();
 		void Create();
 		GLuint GetProgramID();
-		std::vector<GLShader *> GetShaders();
-		void AttachShader(GLShader *shader);
+		void NewVertexShader(char *filename);
+		void NewFragmentShader(char *filename);
+		char *GetName();
 		void Link();
 		void Bind();
-		void UnBind();
 		void SetUniformValue(const char *name, int value);
-    protected:
-		std::vector<GLShader *> shaders;
+    private:
+		char *_Name;
+		Vector<GLShader *> _Shaders;
 		GLuint programID;
 };
 

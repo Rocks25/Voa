@@ -1,12 +1,16 @@
 #include "../include/GLShaderProgram.h"
 
-GLShaderProgram::GLShaderProgram()
+GLShaderProgram::GLShaderProgram(char *name)
 {
+	_Name = name;
 }
 
 GLShaderProgram::~GLShaderProgram()
 {
-    //dtor
+	for(unsigned int i=0; i<_Shaders.size(); i++)
+	{
+		_Shaders.pop();
+	}
 }
 
 void GLShaderProgram::Create()
@@ -19,15 +23,25 @@ GLuint GLShaderProgram::GetProgramID()
 	return programID;
 }
 
-std::vector<GLShader *> GLShaderProgram::GetShaders()
+char *GLShaderProgram::GetName()
 {
-	return shaders;
+	return _Name;
 }
 
-void GLShaderProgram::AttachShader(GLShader *shader)
+void GLShaderProgram::NewVertexShader(char *filename)
 {
-	glAttachShader(programID,shader->GetShaderID());
-	shaders.push_back(shader);
+	GLShader *vshader = new GLShader(GL_VERTEX_SHADER, filename);
+	vshader->Init();
+	glAttachShader(programID,vshader->GetShaderID());
+	_Shaders.push(vshader);
+}
+
+void GLShaderProgram::NewFragmentShader(char *filename)
+{
+	GLShader *fshader = new GLShader(GL_FRAGMENT_SHADER, filename);
+	fshader->Init();
+	glAttachShader(programID,fshader->GetShaderID());
+	_Shaders.push(fshader);
 }
 
 void GLShaderProgram::Link()
@@ -38,11 +52,6 @@ void GLShaderProgram::Link()
 void GLShaderProgram::Bind()
 {
 	glUseProgram(programID);
-}
-
-void GLShaderProgram::UnBind()
-{
-	glUseProgram(0);
 }
 
 void GLShaderProgram::SetUniformValue(const char *name, int value)

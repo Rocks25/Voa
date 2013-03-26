@@ -11,6 +11,10 @@
 template<class T>
 class Vector
 {
+private:
+	int getMaxElem(){return maxElements;};
+
+public:
 	T *data;
 	int maxElements;
 	int noElements;
@@ -25,6 +29,8 @@ public:
 	};
 	~Vector(){ delete[] data; };
 	void setMem(int size){
+		if(size<noElements)
+			return;
 		T *tmp = new T[size];
 		for(int i=0;i<noElements;i++)
 		{
@@ -45,13 +51,14 @@ public:
 	};
 	inline T pop()
 	{
-		T tmp;
+		T tmp=0;
 		if(noElements>0)
 		{
 			tmp = data[noElements];
 			delete data[noElements];
 			noElements--;
 		}
+		return tmp;
 	};
 	
 	inline void clear()
@@ -70,6 +77,8 @@ public:
 		return noElements;
 	};
 	inline T &getAt(int at){
+		if(empty())
+			throw "Cannot \'getAt\' from empty list!\n";
 		if(at < 0)
 		{
 			throw "Negative index not allowed!\n";
@@ -80,10 +89,13 @@ public:
 		}
 		return data[at];
 	};
-	int getMaxElem(){return maxElements;};
-	int getNoElements(){return noElements;};
+	inline T Last()
+	{
+		return getAt(noElements-1);
+	};
+	inline T First(){return getAt(noElements-1);};
 	inline T & operator[](int x){return getAt(x);};
-	inline T operator +=(T x){return append(x);};
+	inline T operator +=(T x){return push(x);};
 };
 
 #endif /* VECTOR_H_ */

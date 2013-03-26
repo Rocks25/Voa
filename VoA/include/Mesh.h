@@ -1,6 +1,6 @@
 #pragma once
 
-#include "myglext.h"
+#include "WindowFunctions.h"
 #include "GLShaderProgram.h"
 
 class Mesh
@@ -10,7 +10,7 @@ public:
 	virtual ~Mesh(void);
 	const char *GetName();
 	void SetName(const char *name);
-	virtual void Render(GLShaderProgram *program);
+	virtual void Render();
 	virtual void Init();
 	virtual void InitTextures();
 	virtual void InitGeometry();

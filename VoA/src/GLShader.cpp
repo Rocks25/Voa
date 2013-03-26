@@ -1,5 +1,5 @@
 #include "../include/GLShader.h"
-#include "../include/myglext.h"
+#include "../include/WindowFunctions.h"
 #include <string>
 #include <direct.h>
 
@@ -23,7 +23,7 @@ void GLShader::Init()
 		{
 			FILE *f;
 			int n = fopen_s(&f,filename,"r");
-			if(n != 0)
+			if(n != 0 || f==0)
 			{
 				char buf[FILENAME_MAX+255]={0};
 				char dir[FILENAME_MAX]={0};

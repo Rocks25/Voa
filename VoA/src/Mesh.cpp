@@ -15,7 +15,7 @@ void Mesh::Cleanup()
 {
 }
 
-void Mesh::Render(GLShaderProgram *program)
+void Mesh::Render()
 {
 }
 

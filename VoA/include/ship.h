@@ -6,7 +6,7 @@
 #include "particlesystem.h"
 #include "GLShader.h"
 #include "GLShaderProgram.h"
-#include "myglext.h"
+#include "WindowFunctions.h"
 #include "Mesh.h"
 #include <vector>
 #include <glm/glm.hpp>
@@ -28,7 +28,7 @@ private:
 public:
 	Ship(float size, const char *name);
     ~Ship();
-	void Render(GLShaderProgram *program);
+	void Render();
     void Init();
     void SetSize(float size);
     void SetPosition(glm::vec3 pos);

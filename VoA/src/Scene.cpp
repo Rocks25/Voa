@@ -1,14 +1,15 @@
 #include "..\include\Scene.h"
 
 
-Scene::Scene(void)
+Scene::Scene(char *name)
 {
+	_Name=name;
 }
 
 
 Scene::~Scene(void)
 {
-	//Cleanup();
+	Cleanup();
 }
 
 void Scene::Cleanup()
@@ -47,7 +48,7 @@ void Scene::AddEntity(Entity *ent)
 
 Entity *Scene::GetEntityByName(const char *name)
 {
-	Entity *ent;
+	Entity *ent=0;
 	for(unsigned int i=0;i<_entities.size();i++)
 	{
 		if(_entities[i]->GetName() == name)
@@ -56,10 +57,15 @@ Entity *Scene::GetEntityByName(const char *name)
 	return ent;
 }
 
-void Scene::Render(GLShaderProgram *program)
+void Scene::Render()
 {
 	for(unsigned int i=0;i<_entities.size();i++)
 	{
-		_entities[i]->Render(program);
+		_entities[i]->Render();
 	}
+}
+
+char *Scene::GetName()
+{
+	return _Name;
 }
