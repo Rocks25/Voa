@@ -1,16 +1,10 @@
 #include "../include/SDLWin.h"
-#include "../include/WindowFunctions.h"
+#include "../include/window_includes.h"
 #include "../include/Plane.h"
 #include "../include/Font.h"
 #include <glm/gtx/transform.hpp>
-#include <SDL_ttf.h>
-#include "../include/sdl_invert.h"
-#include "../include/TextureManager.h"
 #include "../include/Game.h"
-#include "../include/WindowManager.h"
-#include "../include/GlobalEventManager.h"
-#include "../include/SceneManager.h"
-
+#include "../include/Error.h"
 /****************************************************
 *	Name: SDLWin()									*
 *	Description: Constructor.						*
@@ -44,97 +38,112 @@ SDLWin::~SDLWin()
 
 void SDLWin::Render()
 {
-	int width = WindowManager::GetSingleton()->GetWindowWidth();
-	int height = WindowManager::GetSingleton()->GetWindowHeight();
-	OpenGLRenderer *renderer = WindowManager::GetSingleton()->GetRenderer();
+	int width = WM->GetWindowWidth();
+	int height = WM->GetWindowHeight();
+
+	OpenGLRenderer *renderer = WM->GetRenderer();
 	renderer->BindShaderProgram("Main");										// Bind the main shader program
 	GLShaderProgram *shader = renderer->GetCurrentShader();
 	glColor4f(1.0f,1.0f,1.0f,1.0f);												// Set default color to white
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);							// Clear Color and Depth
+
+	GMat->ModelMatrix()->LoadIdentity();
+	GMat->UpdateShader();
+	To2D();
 	
 	if(Game::GetCurrentMode()==GM_PLAY)
 	{
-		SceneManager::GetSingleton()->RenderScene();		// Render ship and exhaust
+		SM->RenderScene("Main");		// Render ship and exhaust
 	}
 	
 	if(Game::GetCurrentMode()==GM_MAINMENU)
 	{
 		glm::mat4 tmp = glm::mat4(1.0f);
-		int modelMatLoc = glGetUniformLocation(shader->GetProgramID(),"modelMat");
-		glUniformMatrix4fv(modelMatLoc, 1, GL_FALSE, &tmp[0][0]);				// Send View Matrix to Shader
+		GMat->ModelMatrix()->UpdateShader("modelMat");
 	
 		glActiveTexture(GL_TEXTURE0);
-		TextureManager::GetSingleton()->BindTexture("Particle2");
+		TM->BindTexture("Particle2");
 		shader->SetUniformValue("tex",0);
 
 		glActiveTexture(GL_TEXTURE1);
-		TextureManager::GetSingleton()->BindTexture("Particle2Alpha");
+		TM->BindTexture("Particle2Alpha");
 		shader->SetUniformValue("alpha",1);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-
-		To2D();
-		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo);
+		WM->GetRenderer()->BindFramebuffer();
+		GMat->ModelMatrix()->LoadIdentity();
+		GMat->UpdateShader();
 		glViewport(0, 0, width, height);
 		glClearColor(0.0f,0.0f,0.0f,0.0f);
 		glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		about.Render();
-		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+		SM->RenderScene("About");
+		WM->GetRenderer()->UnbindFramebuffer();
 
-		TTF_Font *fon = TTF_OpenFont("fonts/arial rounded.TTF",24);
-		if(!fon)
-		{
-			char buf[512];
-			sprintf_s(buf,"Error loading font: %s", TTF_GetError());
-			MessageBox(NULL,buf,"Font Error!",MB_OK);
-		}
-		SDL_Color col;
-		col.r = col.g = col.b = 255;
-		glm::mat4 mat = glm::translate(glm::vec3(0.0f));
-		glUniformMatrix4fv(modelMatLoc, 1, GL_FALSE,&mat[0][0]);					// Send Model Matrix to Shader
-
+		GMat->ModelMatrix()->Translate(0,0,0);
+		GMat->UpdateShader();
+/*
 		glColor4f(1.0f,1.0f,1.0f,1.0f);
 		char buf[512] = {0};
+		Color col(255,255,255);
 		sprintf_s(buf,"X: %d",_mouseX);
-		Font::Render(buf,fon,col);
-		mat = glm::translate(glm::vec3(0.0f,20.0f,0.0f));
-		glUniformMatrix4fv(modelMatLoc, 1, GL_FALSE,&mat[0][0]);					// Send Model Matrix to Shader
+		Font::Render(buf,"fonts/arial rounded.ttf",col,24);
+		GMat->ModelMatrix()->Translate(0.0f,20.0f,0.0f);
+		GMat->ModelMatrix()->UpdateShader("modelMat");
 		sprintf_s(buf, "Y: %d",_mouseY);
-		Font::Render(buf,fon,col);
+		Font::Render(buf,"fonts/arial rounded.ttf",col,24);*/
 
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, fbo_texture);
-		shader->SetUniformValue("tex",0);
+		WM->GetRenderer()->BindFramebufferTexture();
 		glActiveTexture(GL_TEXTURE1);
-		TextureManager::GetSingleton()->BindTexture("White");
+		TM->BindTexture("White");
 		shader->SetUniformValue("alpha",1);
-		tmp = glm::translate(glm::vec3(0,0,0));
-		glUniformMatrix4fv(modelMatLoc, 1, GL_FALSE, &tmp[0][0]);
-		//Plane::RenderInverted(0,0,(float)width,(float)height);
+		To2D();
+		GMat->ViewMatrix()->LoadIdentity();
+		GMat->ModelMatrix()->PushMatrix();
+		GMat->UpdateShader();
 
 		RenderPostProcessing();
+
+		GMat->ModelMatrix()->PopMatrix();
+		GMat->UpdateShader();
 	
-		shader->Bind();
+		/*shader->Bind();
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		mat = glm::translate(glm::vec3(0.0f));
-		glUniformMatrix4fv(modelMatLoc, 1, GL_FALSE,&mat[0][0]);					// Send Model Matrix to Shader
 		glActiveTexture(GL_TEXTURE0);
-		TextureManager::GetSingleton()->BindTexture("MousePointer");
+		TM->BindTexture("MousePointer");
 		shader->SetUniformValue("tex",0);
 	
 		glActiveTexture(GL_TEXTURE1);
-		TextureManager::GetSingleton()->BindTexture("MousePointerAlpha");
+		TM->BindTexture("MousePointerAlpha");
 		shader->SetUniformValue("alpha",1);
 
-		Plane::Render((float)_mouseX,(float)_mouseY,50.0f,50.0f);
-
-		To3D();
+		Plane::Render((float)_mouseX,(float)_mouseY,50.0f,50.0f);*/
 
 		glEnable(GL_BLEND);
 	
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 	}
+	
+	glActiveTexture(GL_TEXTURE0);
+	TM->BindTexture("White");
+	shader->SetUniformValue("tex",0);
+
+	glActiveTexture(GL_TEXTURE1);
+	TM->BindTexture("White");
+	shader->SetUniformValue("alpha",1);
+
+	char bu[255];
+	if(WM->IsFullscreen())
+		sprintf_s(bu, "Fullscreen: True");
+	else
+	{
+		sprintf_s(bu, "Fullscreen: False");
+	}
+
+	Error::Print(bu);
+
+	ModeDisplay();
 	SDL_GL_SwapBuffers();		//Swap buffers
-	IsGLErrors("Render()");
+	//IsGLErrors("Render()");
 }
 
 /****************************************************
@@ -152,7 +161,7 @@ void SDLWin::Events(SDL_Event *event)
 		_mouseY = event->motion.y;
 	}
     default:
-		GlobalEventManager::GetSingleton()->ProcessEvent(event);
+		GEM->ProcessEvent(event);
         break;
 	}
 }
@@ -165,15 +174,15 @@ void SDLWin::Events(SDL_Event *event)
 
 int SDLWin::Run()
 {
-	if(WindowManager::GetSingleton()->CreateSDLWindow() && WindowManager::GetSingleton()->InitOpenGL())					// Initialize SDL
+	Game game;
+	if(WM->CreateSDLWindow() && WM->InitOpenGL())					// Initialize SDL
 		Game::Run();				// If SDL initialization is successful, set the 'Running' variable for the main loop to start
 	Game::SwitchMode(GM_PLAY);
-	about.Init();
+	GMat->ProjectionMatrix()->SetupOrthProject();
 	InitGeometry();
 	InitTextures();
-	InitFramebuffer();
-	ShaderInit();
-	SceneManager::GetSingleton()->GetCurrentScene()->Init();
+	WM->GetRenderer()->Init();
+	To2D();
 
     SDL_Event Event;				// Create an event variable for catching events that SDL sends
     while(Game::IsRunning())					// Main Loop starts here
@@ -181,8 +190,12 @@ int SDLWin::Run()
         if(SDL_PollEvent(&Event)) {
             Events(&Event);			// Send Events to the 'Events' function for processing
         }
-        Loop();						// Game loop processing
-		Render();					// Draw to the screen
+		if(Game::IsActive())
+		{
+			Loop();						// Game loop processing
+			Render();					// Draw to the screen
+			_CrtCheckMemory( );
+		}
 		SDL_Delay(TimeLeft());		// Limit the frame rate
     }
 
@@ -200,7 +213,6 @@ void SDLWin::Cleanup()
 {
 	if(Game::GetCurrentMode()==GM_QUIT)
 	{
-		about.Cleanup();
 		SDL_Quit();														// Close Out
 	}
 }
@@ -213,128 +225,7 @@ void SDLWin::Cleanup()
 
 void SDLWin::Loop()
 {
-	//Ship *ship = (Ship *)scene1.GetEntityByName("player")->GetMeshByName("player_ship");
-	//ParticleSystem *lEngine = (ParticleSystem *)scene1.GetEntityByName("player")->GetMeshByName("LEngine");
-	//ParticleSystem *rEngine = (ParticleSystem *)scene1.GetEntityByName("player")->GetMeshByName("REngine");
-	//float rotSpeed=10.0f;
-	//// TODO: Move all processing of keystrokes to a seperate
-	////		function or class for better readability
-	//if(Game::GetCurrentMode()==GM_PLAY)
-	//{
-	//	if(keys[SDLK_RIGHT])	// If the right arrow key is pressed
-	//	{
-	//		ship->SetRotation(glm::vec3(0.0f,0.0f,-rotSpeed));			// Rotate the ship clockwise
-	//		lEngine->SetRotation(lEngine->GetRotation()-glm::vec3(0.0f,0.0f,rotSpeed));			// Rotate the ship clockwise
-	//		rEngine->SetRotation(rEngine->GetRotation()-glm::vec3(0.0f,0.0f,rotSpeed));			// Rotate the ship clockwise
-	//	}
-
-	//	if(keys[SDLK_UP])		// If the up arrow key is pressed
-	//	{
-	//		float vel = ship->GetThrottle();								// Get the ship's current throttle
-	//		if(vel <= 1.75f)	// If the throttle is less than max
-	//		{
-	//			ship->SetThrottle(vel+.1f);								// Increase the throttle
-	//			lEngine->SetStrength((vel+.1f)*(-35));
-	//			rEngine->SetStrength((vel+.1f)*(-35));
-	//		}
-	//		glm::vec3 center = ship->GetPosition();						// Get the position of the ship
-	//		// TODO: Add functionality for moving the ship around
-	//	}
-	//	else					// While the up key is not pressed
-	//	{
-	//		float vel = ship->GetThrottle();								// Get the ship's current throttle
-	//		if(vel > 0.0f)		// Make sure that there is a throttle
-	//		{
-	//			if(vel < 0.1)	// If the throttle is close to zero
-	//			{
-	//				ship->SetThrottle(0);								// Go ahead and set it to zero (no need to waste fuel)
-	//				lEngine->SetStrength(0);
-	//				rEngine->SetStrength(0);
-	//			}
-	//			else
-	//			{
-	//				ship->SetThrottle(vel-0.05f);						// Decrease throttle
-	//				lEngine->SetStrength(vel-0.05f);
-	//				rEngine->SetStrength(vel-0.05f);
-	//			}
-	//		} 
-	//	}
-	//	if(keys[SDLK_DOWN])		// If down arrow key is pressed
-	//	{
-	//		// TODO: Figure out what to do here
-	//	}
-	//}
-
-}
-
-/****************************************************
-*	Name: ShaderInit()								*
-*	Description: Initializes all fragment and		*
-*			vertex shaders.							*
-****************************************************/
-
-void SDLWin::ShaderInit()
-{
-	int width=WindowManager::GetSingleton()->GetWindowWidth();
-	int height=WindowManager::GetSingleton()->GetWindowHeight();
-
-	OpenGLRenderer *renderer = WindowManager::GetSingleton()->GetRenderer();
-	renderer->NewShaderProgram("Main");	
-	GLShaderProgram *shader = renderer->GetShaderProgramByName("Main");
-	shader->NewFragmentShader("shaders/main.frag");			// Attach the vertex shader to the main program
-	shader->NewVertexShader("shaders/main.vert");			// Attache the fragment shader to the main program
-	shader->Link();											// Link the shader program
-	renderer->BindShaderProgram("Main");
-	
-	orthMat = glm::ortho(0.0f, (float)width, (float)height, 0.0f, -50.0f, 100.0f);	// Set the orthographic Matrix
-	perspMat= glm::perspective(45.0f,(float)800/((float)600),0.1f,1000.0f);					// Set the perspective Matrix
-	viewMat = glm::lookAt(glm::vec3(0.0,0.0,5.0f),glm::vec3(0,0,0),glm::vec3(0,1,0));		// Set the view matrix
-
-	int projMatLoc = glGetUniformLocation(shader->GetProgramID(),"projMat");	// Get the location of the projection matrix from shader
-	int viewMatLoc = glGetUniformLocation(shader->GetProgramID(),"viewMat");	// Get the location of the view matrix from the shader
-	
-	glUniformMatrix4fv(projMatLoc, 1, GL_FALSE,&perspMat[0][0]);					// Send the perspective matrix to the shader program
-	glUniformMatrix4fv(viewMatLoc, 1, GL_FALSE, &viewMat[0][0]);				// Send the view matrix to the shader program
-	
-	//Blur Shader Horizontal
-	renderer->NewShaderProgram("HBlur");
-	shader = renderer->GetShaderProgramByName("HBlur");
-	shader->NewVertexShader("shaders/main.vert");		// Load the main vertex shader from file.
-	shader->NewFragmentShader("shaders/blurH.frag");	// Load the main fragment shader from file.
-	shader->Link();							// Link the shader program
-	renderer->BindShaderProgram("HBlur");
-	
-	
-	glUniform1f(glGetUniformLocation(shader->GetProgramID(),"blur"),_blurX);
-
-	glm::mat4 modelMat = glm::translate(glm::vec3(0.0f));
-	projMatLoc = glGetUniformLocation(shader->GetProgramID(),"projMat");	// Get the location of the projection matrix from shader
-	viewMatLoc = glGetUniformLocation(shader->GetProgramID(),"viewMat");	// Get the location of the view matrix from the shader
-	int modelMatLoc = glGetUniformLocation(shader->GetProgramID(),"modelMat");
-
-	glUniformMatrix4fv(projMatLoc, 1, GL_FALSE,&orthMat[0][0]);					// Send the perspective matrix to the shader program
-	glUniformMatrix4fv(viewMatLoc, 1, GL_FALSE, &viewMat[0][0]);				// Send the view matrix to the shader program
-	glUniformMatrix4fv(modelMatLoc, 1, GL_FALSE, &modelMat[0][0]);
-	
-	//Blur Shader Vertical
-	renderer->NewShaderProgram("VBlur");
-	shader = renderer->GetShaderProgramByName("VBlur");
-	shader->NewVertexShader("shaders/main.vert");		// Load the main vertex shader from file.
-	shader->NewFragmentShader("shaders/blurV.frag");	// Load the main fragment shader from file.
-	shader->Link();										// Link the shader program
-	renderer->BindShaderProgram("VBlur");
-	
-	glUniform1f(glGetUniformLocation(shader->GetProgramID(),"blur"),_blurY);
-
-	projMatLoc = glGetUniformLocation(shader->GetProgramID(),"projMat");	// Get the location of the projection matrix from shader
-	viewMatLoc = glGetUniformLocation(shader->GetProgramID(),"viewMat");	// Get the location of the view matrix from the shader
-	modelMatLoc = glGetUniformLocation(shader->GetProgramID(),"modelMat");
-
-	glUniformMatrix4fv(projMatLoc, 1, GL_FALSE,&orthMat[0][0]);					// Send the perspective matrix to the shader program
-	glUniformMatrix4fv(viewMatLoc, 1, GL_FALSE, &viewMat[0][0]);				// Send the view matrix to the shader program
-	glUniformMatrix4fv(modelMatLoc, 1, GL_FALSE, &modelMat[0][0]);
-
-	IsGLErrors("Shader Init");
+	PC->ProcessKeyboardControls();
 }
 
 /****************************************************
@@ -360,33 +251,24 @@ Uint32 SDLWin::TimeLeft(void)
 void SDLWin::To3D()
 {
 	//IsGLErrors("Before Switching projection");
-	int projMatLoc = glGetUniformLocation(WindowManager::GetSingleton()->GetRenderer()->GetShaderProgramByName("Main")->GetProgramID(),"projMat");
-	glUniformMatrix4fv(projMatLoc, 1, GL_FALSE,&perspMat[0][0]);					// Send Projection Matrix to Shader	
+	WM->GetRenderer()->To3D();
 	Perspective=!Perspective;
 }
 
 void SDLWin::To2D()
 {
+	WM->GetRenderer()->To2D();
 	//IsGLErrors("Before Switching projection");
-	int projMatLoc = glGetUniformLocation(WindowManager::GetSingleton()->GetRenderer()->GetShaderProgramByName("Main")->GetProgramID(),"projMat");
-	if(Perspective)
-	{
-		glUniformMatrix4fv(projMatLoc, 1, GL_FALSE,&orthMat[0][0]);					// Send Projection Matrix to Shader
-	}
-	else
-	{
-		glUniformMatrix4fv(projMatLoc, 1, GL_FALSE,&perspMat[0][0]);					// Send Projection Matrix to Shader	
-	}
 	Perspective=!Perspective;
 }
 
 void SDLWin::InitTextures()
 {
-	TextureManager::GetSingleton()->AddTexture("images/particle2.jpg","Particle2");
-	TextureManager::GetSingleton()->AddTexture("images/particle2_alpha.jpg","Particle2Alpha");
-	TextureManager::GetSingleton()->AddTexture("images/mouse2.jpg", "MousePointer");
-	TextureManager::GetSingleton()->AddTexture("images/mouse2_alpha.jpg", "MousePointerAlpha");
-	TextureManager::GetSingleton()->AddTexture("images/particle1_alpha.jpg", "White");
+	TM->AddTexture("images/particle1_alpha.jpg", "White");
+	TM->AddTexture("images/particle2.jpg","Particle2");
+	TM->AddTexture("images/particle2_alpha.jpg","Particle2Alpha");
+	TM->AddTexture("images/mouse2.jpg", "MousePointer");
+	TM->AddTexture("images/mouse2_alpha.jpg", "MousePointerAlpha");
 }
 
 void SDLWin::InitGeometry()
@@ -396,71 +278,38 @@ void SDLWin::InitGeometry()
 	float size = ship->GetSize();
 	float width = ship->GetBoundingBox().x;
 	float newWidth = width*size;
+	ship->Init();
 	ParticleSystem *lEngine = new ParticleSystem("LEngine");
 	ParticleSystem *rEngine = new ParticleSystem("REngine");
 
 	//lEngine->SetPositionMat(glm::translate(glm::mat4(1.0f),glm::vec3(-newWidth,-10.0,0.0)));
+	TM->AddTexture("images/particle1.jpg","Particle1");
+	TM->AddTexture("images/particle1_alpha.jpg","Particle1_Alpha");
 	lEngine->Setup(1.0f, 7.0f, 400, 1.15f);
 	lEngine->SetStrength(12.0f);
 	//rEngine->SetPositionMat(glm::translate(glm::mat4(1.0f),glm::vec3(newWidth,-10.0,0.0)));
     rEngine->Setup(1.0f, 7.0f, 400, 1.15f);
 	rEngine->SetStrength(12.0f);
+
 	ent->AddMesh(lEngine);
 	ent->AddMesh(rEngine);
 	ent->AddMesh(ship);
 
-	SceneManager::GetSingleton()->NewScene("Main");
-	SceneManager::GetSingleton()->GetCurrentScene()->AddEntity(ent);
-	SceneManager::GetSingleton()->GetCurrentScene()->Init();
-}
+	SM->NewScene("Main");
+	SM->GetCurrentScene()->AddEntity(ent);
+	SM->GetCurrentScene()->Init();
 
-void SDLWin::InitFramebuffer()
-{
-	int width = WindowManager::GetSingleton()->GetWindowWidth();
-	int height = WindowManager::GetSingleton()->GetWindowHeight();
-	//glGenRenderbuffers(1, &fbo_depth);							// Generate depth buffer for frame buffer object (FBO)
-	//glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, fbo_depth);		// Bind depth buffer
-
-	//glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT, window->w, window->h);
-	//glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, fbo_depth);
-
-	//glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, 0);
-
-	glGenTextures(1, &fbo_texture);					// Generate texture for frame buffer object
-	glBindTexture(GL_TEXTURE_2D, fbo_texture);		// Bind the frame buffer's texture
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);			// Generate a standard rgba texture
-
-	// Setup Texture parameters
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);  
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);  
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);  
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-	glBindTexture(GL_TEXTURE_2D, 0);				// Unbind texture
-
-	glGenFramebuffersEXT(1, &fbo);					// Generate FBO
-	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo);	// Bind FBO
-
-	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, fbo_texture, 0);		// Attach texture to FBO
-	//glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, fbo_depth);	// Attach depth buffer to FBO
-
-	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);	// Unbind frame buffer object
-
-	// Check status of FBO
-	GLenum status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
-	if (status != GL_FRAMEBUFFER_COMPLETE_EXT)
-	{
-		MessageBox(NULL, "Couldn't create FBO!", "Init Error", MB_OK);
-		return;
-	}
-	IsGLErrors("Framebuffer Init");
+	About *about = new About("About");
+	SM->AddScene(about);
+	SM->GetCurrentScene()->Init();
 }
 
 
 void SDLWin::RenderPostProcessing()
 {
-	int width = WindowManager::GetSingleton()->GetWindowWidth();
-	int height = WindowManager::GetSingleton()->GetWindowHeight();
+	glColor4f(1.0f,1.0f,1.0f,1.0f);
+	int width = WM->GetWindowWidth();
+	int height = WM->GetWindowHeight();
 	float maxBlur = 256.0f;
 	if((_blurY>1/maxBlur && _blurYinc==true))
 	{
@@ -481,124 +330,55 @@ void SDLWin::RenderPostProcessing()
 	char buf3[512]={0};
 	_blurX+=_blurXrate*2;
 	_blurY+=_blurYrate;
-
+	
+	Plane::RenderInverted(0,0,(float)width,(float)height);
 	// Apply Horizontal Blur
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo);
+	GMat->ModelMatrix()->LoadIdentity();
+	WM->GetRenderer()->BindFramebuffer();
 	
-	WindowManager::GetSingleton()->GetRenderer()->BindShaderProgram("HBlur");
-	GLShaderProgram *shader = WindowManager::GetSingleton()->GetRenderer()->GetCurrentShader();
+	WM->GetRenderer()->BindShaderProgram("HBlur");
+	GLShaderProgram *shader = WM->GetRenderer()->GetCurrentShader();
 	glViewport(0, 0, width, height);
 	glClearColor(0.0f,0.0f,0.0f,1.0f);
 	glUniform1f(glGetUniformLocation(shader->GetProgramID(),"blur"),_blurX);
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, fbo_texture);
-    shader->SetUniformValue("tex",0);
+	WM->GetRenderer()->BindFramebufferTexture();
 	glActiveTexture(GL_TEXTURE1);
-	TextureManager::GetSingleton()->BindTexture("White");
+	TM->BindTexture("White");
     shader->SetUniformValue("alpha",1);
-	int modelMatLoc = glGetUniformLocation(shader->GetProgramID(),"modelMat");
-	glm::mat4 tmp = glm::translate(glm::vec3(0,0,0));
-	glUniformMatrix4fv(modelMatLoc, 1, GL_FALSE, &tmp[0][0]);
+	GMat->UpdateShader();
 	Plane::RenderInverted(0,0,(float)width,(float)width);
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 
 	// Apply Vertical Blur
-	WindowManager::GetSingleton()->GetRenderer()->BindShaderProgram("VBlur");
-	shader = WindowManager::GetSingleton()->GetRenderer()->GetCurrentShader();
+	WM->GetRenderer()->BindShaderProgram("VBlur");
+	shader = WM->GetRenderer()->GetCurrentShader();
 	glUniform1f(glGetUniformLocation(shader->GetProgramID(),"blur"),_blurY/2.0f);
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, fbo_texture);
-    shader->SetUniformValue("tex",0);
-	modelMatLoc = glGetUniformLocation(shader->GetProgramID(),"modelMat");
-	glUniformMatrix4fv(modelMatLoc, 1, GL_FALSE, &tmp[0][0]);
+	WM->GetRenderer()->BindFramebufferTexture();
+	glActiveTexture(GL_TEXTURE1);
+	TM->BindTexture("White");
+    shader->SetUniformValue("alpha",1);
+	GMat->UpdateShader();
 	Plane::RenderInverted(0,0,(float)width,(float)height);
+
+	WM->GetRenderer()->UnbindFramebuffer();
 }
 
-void SDLWin::TurnLeft()
+void SDLWin::ModeDisplay()
 {
-	//Ship *ship = (Ship *)scene1.GetEntityByName("player")->GetMeshByName("player_ship");
-	//ParticleSystem *lEngine = (ParticleSystem *)scene1.GetEntityByName("player")->GetMeshByName("LEngine");
-	//ParticleSystem *rEngine = (ParticleSystem *)scene1.GetEntityByName("player")->GetMeshByName("REngine");
-	//float rotSpeed=10.0f;											// Set a speed for the rotation of the 
+	GMat->ModelMatrix()->LoadIdentity();
+	GMat->UpdateShader();
+	glActiveTexture(GL_TEXTURE0);
+	TM->BindTexture("White");
+	glActiveTexture(GL_TEXTURE1);
+	TM->BindTexture("White");
 
-	//ship->SetRotation(glm::vec3(0.0f,0.0f,rotSpeed));			// Rotate the ship counter clockwise
-	//lEngine->SetRotation(lEngine->GetRotation()+glm::vec3(0.0f,0.0f,rotSpeed));			// Rotate the ship counter clockwise
-	//rEngine->SetRotation(rEngine->GetRotation()+glm::vec3(0.0f,0.0f,rotSpeed));			// Rotate the ship counter clockwise
-}
-
-void SDLWin::TurnRight()
-{
-	//Ship *ship = (Ship *)scene1.GetEntityByName("player")->GetMeshByName("player_ship");
-	//ParticleSystem *lEngine = (ParticleSystem *)scene1.GetEntityByName("player")->GetMeshByName("LEngine");
-	//ParticleSystem *rEngine = (ParticleSystem *)scene1.GetEntityByName("player")->GetMeshByName("REngine");
-	//float rotSpeed=10.0f;
-
-	//ship->SetRotation(glm::vec3(0.0f,0.0f,-rotSpeed));			// Rotate the ship clockwise
-	//lEngine->SetRotation(lEngine->GetRotation()-glm::vec3(0.0f,0.0f,rotSpeed));			// Rotate the ship clockwise
-	//rEngine->SetRotation(rEngine->GetRotation()-glm::vec3(0.0f,0.0f,rotSpeed));			// Rotate the ship clockwise
-}
-
-void SDLWin::InitKeyActions()
-{
-	//KeyAction kAct;
-	//kAct.Key = SDLK_LEFT;
-	//kAct.name = "TurnLeft";
-	//kAct.State = KS_DOWN;
-	///*typedef void(SDLWin::*point)(void) const;
-	//point fp = this->TurnLeft;*/
-	////kAct.Action = fp;
-	//KeyHandler::GetSingleton()->AddAction(kAct);
-
-	//kAct.Key = SDLK_RIGHT;
-	//kAct.name = "TurnRight";
-	//kAct.State = KS_DOWN;
-	//kAct.Action = this->TurnRight;
-	//Ship *ship = (Ship *)scene1.GetEntityByName("player")->GetMeshByName("player_ship");
-	//ParticleSystem *lEngine = (ParticleSystem *)scene1.GetEntityByName("player")->GetMeshByName("LEngine");
-	//ParticleSystem *rEngine = (ParticleSystem *)scene1.GetEntityByName("player")->GetMeshByName("REngine");
-	//float rotSpeed=10.0f;
-																	// TODO: Check why the rotation is backwards	
-	//if(keys[SDLK_RIGHT])	// If the right arrow key is pressed
-	//{
-	//	ship->SetRotation(glm::vec3(0.0f,0.0f,-rotSpeed));			// Rotate the ship clockwise
-	//	lEngine->SetRotation(lEngine->GetRotation()-glm::vec3(0.0f,0.0f,rotSpeed));			// Rotate the ship clockwise
-	//	rEngine->SetRotation(rEngine->GetRotation()-glm::vec3(0.0f,0.0f,rotSpeed));			// Rotate the ship clockwise
-	//}
-
-	//if(keys[SDLK_UP])		// If the up arrow key is pressed
-	//{
-	//	float vel = ship->GetThrottle();								// Get the ship's current throttle
-	//	if(vel <= 1.75f)	// If the throttle is less than max
-	//	{
-	//		ship->SetThrottle(vel+.1f);								// Increase the throttle
-	//		lEngine->SetStrength((vel+.1f)*(-35));
-	//		rEngine->SetStrength((vel+.1f)*(-35));
-	//	}
-	//	glm::vec3 center = ship->GetPosition();						// Get the position of the ship
-	//	// TODO: Add functionality for moving the ship around
-	//}
-	//else					// While the up key is not pressed
-	//{
-	//	float vel = ship->GetThrottle();								// Get the ship's current throttle
-	//	if(vel > 0.0f)		// Make sure that there is a throttle
-	//	{
-	//		if(vel < 0.1)	// If the throttle is close to zero
-	//		{
-	//			ship->SetThrottle(0);								// Go ahead and set it to zero (no need to waste fuel)
-	//			lEngine->SetStrength(0);
-	//			rEngine->SetStrength(0);
-	//		}
-	//		else
-	//		{
-	//			ship->SetThrottle(vel-0.05f);						// Decrease throttle
-	//			lEngine->SetStrength(vel-0.05f);
-	//			rEngine->SetStrength(vel-0.05f);
-	//		}
-	//	} 
-	//}
-	//if(keys[SDLK_DOWN])		// If down arrow key is pressed
-	//{
-	//	// TODO: Figure out what to do here
-	//}
+	char buf[255] = {0};
+	if(Game::GetCurrentMode() == GM_MAINMENU)
+		sprintf_s(buf, "Game Mode: Main Menu");
+	else
+		sprintf_s(buf, "Game Mode: Play");
+	Font::Render(buf,"fonts/arial rounded.ttf",Color(255,255,255,160),24);
 }

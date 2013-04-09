@@ -4,15 +4,12 @@
 class GlobalEventManager
 {
 private:
-	static GlobalEventManager *_instance;
 	bool _keys[323];
 
-protected:
+public:
 	GlobalEventManager(void);
 	~GlobalEventManager(void);
-
-public:
-	static GlobalEventManager *GetSingleton();
 	void ProcessEvent(SDL_Event *event);
 };
 
+extern GlobalEventManager *GEM;

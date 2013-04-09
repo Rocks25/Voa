@@ -2,7 +2,7 @@
 
 #include "Mesh.h"
 #include "GLShaderProgram.h"
-#include <vector>
+#include "vector.h"
 #include <glm/gtc/matrix_transform.hpp>
 
 class Entity
@@ -13,8 +13,10 @@ public:
 	virtual void Cleanup();
 	virtual void Init();
 	virtual void InitTextures();
-	void AddMesh(Mesh *);
+	void AddMesh(Mesh *mesh);
 	const char *GetName();
+	unsigned int GetNumMeshes();
+	std::vector<Mesh *> GetAllMeshes();
 	void SetName(const char *name);
 	Mesh *GetMeshByName(const char *name);
 	void Translate(float x, float y, float z);

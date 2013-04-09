@@ -1,12 +1,11 @@
 #pragma once
 
-#include "vector.h"
 #include <vector>
 
 typedef struct
 {
 	char *filename;
-	char *name;
+	std::vector<char *> names;
 	int width;
 	int height;
 	unsigned int pixels;
@@ -16,19 +15,21 @@ class TextureManager
 {
 private:
 	// Private Function Prototypes //
-	TextureManager(void);			// Keep Private so no instantiation is allowed
-	~TextureManager(void);			//
+	TextureManager(TextureManager &){};		// Keep Copy constructor private so that it can not be copied
+	TextureManager &operator =(int){};
 
 	// Class Variables //
-	Vector<TextureInfo *> _Textures;
-	static TextureManager *_instance;
+	std::vector<TextureInfo> _Textures;
 
 public:
-	static TextureManager *GetSingleton();
+	TextureManager(void);
+	~TextureManager(void);
+	void Cleanup();
 	//bool AddTexture(Texture *tex);	// Add a texture to the pool
 	bool AddTexture(char *filename, char *name=0);
-	TextureInfo *GetTextureinfo(char *name);
+	TextureInfo GetTextureinfo(char *name);
 	bool BindTexture(char *name);
 	void ReloadTextures();
 };
 
+extern TextureManager *TM;

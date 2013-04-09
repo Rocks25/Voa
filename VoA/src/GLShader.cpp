@@ -1,5 +1,4 @@
 #include "../include/GLShader.h"
-#include "../include/WindowFunctions.h"
 #include <string>
 #include <direct.h>
 
@@ -11,7 +10,6 @@ GLShader::GLShader(int t, const char *fn)
 
 GLShader::~GLShader()
 {
-    //dtor
 }
 
 void GLShader::Init()

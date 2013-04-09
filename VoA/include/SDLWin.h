@@ -1,7 +1,7 @@
 #ifndef SDLWIN_H
 #define SDLWIN_H
 
-#include "WindowFunctions.h"
+#include "window_includes.h"
 #include "ship.h"
 #include "GLShader.h"
 #include "GLShaderProgram.h"
@@ -20,11 +20,10 @@ class SDLWin
     protected:
 		// Initialization Routines
 		bool Init();
-		void ShaderInit();
 		void InitTextures();
 		void InitGeometry();
-		void InitFramebuffer();
 		void InitKeyActions();
+		void ModeDisplay();
 
 		// Per-Frame Routines
         void Loop();		// Main Loop Processing
@@ -45,14 +44,9 @@ class SDLWin
 		bool fullscreen;
 		bool Perspective;
 
-		About about;
-		glm::mat4 perspMat;
-		glm::mat4 orthMat;
-		glm::mat4 viewMat;
 		int _mouseX, _mouseY;
 		float _blurX, _blurY, _blurXrate, _blurYrate;
 		bool _blurXinc, _blurYinc;
-		GLuint fbo, fbo_depth, fbo_texture;
 };
 
 #endif // SDLWIN_H

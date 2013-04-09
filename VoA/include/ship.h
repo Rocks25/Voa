@@ -6,7 +6,7 @@
 #include "particlesystem.h"
 #include "GLShader.h"
 #include "GLShaderProgram.h"
-#include "WindowFunctions.h"
+#include "window_includes.h"
 #include "Mesh.h"
 #include <vector>
 #include <glm/glm.hpp>
@@ -17,7 +17,7 @@ private:
     float size;
     int width;
     int height;
-	glm::mat4 modelMat;
+	glm::vec3 _Velocity;
 	float throttle;
 	GLuint _nVBOVertices;
 	GLuint _nVBOTexCoords;
@@ -28,17 +28,11 @@ private:
 public:
 	Ship(float size, const char *name);
     ~Ship();
-	void Render();
-    void Init();
-    void SetSize(float size);
-    void SetPosition(glm::vec3 pos);
-    void SetDirection(glm::vec3 dir);
-    void SetRotation(glm::vec3 rot);
+	virtual void Render();
+    virtual void Init();
 	void SetThrottle(float throt);
     float GetSize();
-    glm::vec3 GetPosition();
-    glm::vec3 GetDirection();
-    glm::vec3 GetRotation();
+    void SetSize(float size);
 	float GetThrottle();
 	glm::vec3 GetBoundingBox();
 

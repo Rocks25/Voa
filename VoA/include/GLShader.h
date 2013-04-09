@@ -1,7 +1,7 @@
 #ifndef GLSHADER_H
 #define GLSHADER_H
 #include <windows.h>
-#include "../include/WindowFunctions.h"
+#include "window_includes.h"
 #include <vector>
 #include <string>
 

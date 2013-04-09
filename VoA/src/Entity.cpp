@@ -9,6 +9,10 @@ Entity::Entity(const char *name) : _modelMat(1.0f)
 
 Entity::~Entity(void)
 {
+	for(unsigned int i=0; i<_Meshes.size(); i++)
+	{
+		delete _Meshes[i];
+	}
 }
 
 void Entity::Init()
@@ -31,6 +35,8 @@ void Entity::AddMesh(Mesh *mesh)
 {
 	if(GetMeshByName(mesh->GetName())==0)
 		_Meshes.push_back(mesh);
+	else
+		delete mesh;
 }
 
 void Entity::SetName(const char *name)
@@ -41,6 +47,16 @@ void Entity::SetName(const char *name)
 const char *Entity::GetName()
 {
 	return _Name;
+}
+
+unsigned int Entity::GetNumMeshes()
+{
+	return _Meshes.size();
+}
+
+std::vector<Mesh *> Entity::GetAllMeshes()
+{
+	return _Meshes;
 }
 
 Mesh *Entity::GetMeshByName(const char *name)
@@ -59,10 +75,6 @@ void Entity::Cleanup()
 {
 	if(!_Meshes.empty())
 	{
-		for(unsigned int i=0;i<_Meshes.size();i++)
-		{
-			delete _Meshes[i];
-		}
 		_Meshes.clear();
 	}
 }

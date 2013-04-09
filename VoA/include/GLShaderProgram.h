@@ -1,9 +1,9 @@
 #ifndef GLSHADERPROGRAM_H
 #define GLSHADERPROGRAM_H
 
-#include "WindowFunctions.h"
+#include "GLShaderProgram.h"
 #include "GLShader.h"
-#include "vector.h"
+#include <vector>
 
 class GLShaderProgram
 {
@@ -18,9 +18,10 @@ class GLShaderProgram
 		void Link();
 		void Bind();
 		void SetUniformValue(const char *name, int value);
+		std::vector<GLShader> GetShaders();
     private:
 		char *_Name;
-		Vector<GLShader *> _Shaders;
+		std::vector<GLShader> _Shaders;
 		GLuint programID;
 };
 

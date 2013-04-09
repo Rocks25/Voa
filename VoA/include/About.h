@@ -1,26 +1,26 @@
 #pragma once
 
 #include "BasicObject.h"
-#include "WindowFunctions.h"
-#include "GLShaderProgram.h"
+#include "Game.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
-#include <vector>
+#include "vector.h"
+#include "../include/Plane.h"
 
-class About
+class About : public Scene
 {
 public:
-	About();
+	About(char *name);
 	~About(void);
-	void Render();
-	void Init();
+	virtual void Render();
+	virtual void Init();
 	void Cleanup();
 	void Resize();
 private:
 	void InitTextures();
 	bool IsInitialized();
 
-	std::vector<BasicObject *> objects;
+	std::vector<Plane *> objects;
 	float alpha1,alpha2,arate1,arate2;
 	bool a1inc,a2inc;
 	float a1rot,a2rot;

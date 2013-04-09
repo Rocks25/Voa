@@ -8,10 +8,10 @@ class Plane :
 public:
 	Plane(float width, float height);
 	virtual ~Plane(void);
-	virtual void Render();
+	void Render();
 	static void Render(float x, float y, float width, float height);
 	static void RenderInverted(float x, float y, float width, float height);
-	virtual void Init();
+	void Init();
 private:
 	//Class Variables
 	float _width;

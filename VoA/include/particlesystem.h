@@ -12,18 +12,19 @@
 class ParticleSystem : public Mesh
 {
 private:
-    float   slowdown;
-    float   zoom;
-	glm::mat4 oldModelMat;
-    glm::vec3 pos;
-    glm::vec3 direction;
-    glm::vec3 rotation;
+    float   _Slowdown;
+    float   _Zoom;
+	glm::mat4 _oldModelMat;
+    glm::vec3 _Position;
+    glm::vec3 _Direction;
+    glm::vec3 _Rotation;
     float   _size;
     float   _strength;
     float   _growthRate;
-	GLuint ptexture[2];
-    std::vector<particle> newparticles;
-	std::vector<particle> particles;
+	GLuint _Texture[2];
+    std::vector<particle> _NewParticles;
+	std::vector<particle> _Particles;
+	char *_TexFilename;
 
 public:
     ParticleSystem(char *name);

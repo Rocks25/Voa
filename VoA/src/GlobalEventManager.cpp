@@ -1,8 +1,6 @@
 #include "..\include\GlobalEventManager.h"
 #include "..\include\Game.h"
 
-GlobalEventManager *GlobalEventManager::_instance = 0;
-
 GlobalEventManager::GlobalEventManager(void)
 {
 }
@@ -10,16 +8,6 @@ GlobalEventManager::GlobalEventManager(void)
 
 GlobalEventManager::~GlobalEventManager(void)
 {
-	delete _instance;
-}
-
-GlobalEventManager *GlobalEventManager::GetSingleton()
-{
-	if(!_instance)
-	{
-		_instance = new GlobalEventManager();
-	}
-	return _instance;
 }
 
 void GlobalEventManager::ProcessEvent(SDL_Event *event)
@@ -29,5 +17,9 @@ void GlobalEventManager::ProcessEvent(SDL_Event *event)
 	{
 		//Send to Game class for it to send to proper handler
 		Game::ProcessKeyboardEvent(event);
+	}
+	if(event->type==SDL_VIDEORESIZE || SDL_VIDEOEXPOSE || SDL_ACTIVEEVENT)
+	{
+		WM->ProcessEvent(event);
 	}
 }

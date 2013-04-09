@@ -1,8 +1,7 @@
 #include "..\include\TextureManager.h"
-#include "..\include\WindowFunctions.h"
+#include "..\include\window_includes.h"
 #include "..\include\sdl_invert.h"
 
-TextureManager *TextureManager::_instance = NULL;
 
 
 TextureManager::TextureManager(void)
@@ -12,21 +11,19 @@ TextureManager::TextureManager(void)
 
 TextureManager::~TextureManager(void)
 {
-	delete _instance;
-	for(unsigned int i=_Textures.size(); i>0 ;i--)
-	{
-		glDeleteTextures(1,&_Textures[i]->pixels);
-		_Textures.pop();
-	}
+	Cleanup();
 }
 
-TextureManager *TextureManager::GetSingleton()
+void TextureManager::Cleanup()
 {
-	if(!_instance)
+	if(_Textures.size()==0)
+		return;
+	for(unsigned int i=_Textures.size()-1; i>0; i--)
 	{
-		_instance = new TextureManager;
+		TextureInfo tex = _Textures[i];
+		glDeleteTextures(1,&_Textures[i].pixels);
+		//_Textures.pop_back();
 	}
-	return _instance;
 }
 
 
@@ -51,17 +48,25 @@ bool TextureManager::AddTexture(char *filename,char *name)
 	{
 		for(unsigned int i=0;i<_Textures.size();i++)
 		{
-			if(strcmp(_Textures[i]->name,name)==0 || strcmp(_Textures[i]->filename,filename)==0)
-				return false;
+			for(unsigned int j=0;j<_Textures[i].names.size();j++)
+			{
+				if(strcmp(_Textures[i].names[j],name)==0)
+					return false;
+				else if(strcmp(_Textures[i].filename,filename)==0)
+				{
+					_Textures[i].names.push_back(name);
+					return true;
+				}
+			}
 		}
 	}
-	TextureInfo *tex = new TextureInfo();
-	tex->name = name;
-	tex->filename = filename;
+	TextureInfo tex;
+	tex.names.push_back(name);
+	tex.filename = filename;
 
-	glGenTextures(1,&tex->pixels);
+
+	glGenTextures(1,&tex.pixels);
     SDL_Surface *a = IMG_Load(filename);
-	SDL_PixelFormat *format = a->format;
 	if(!a)
 	{
 		char buf[255]={0};
@@ -69,9 +74,10 @@ bool TextureManager::AddTexture(char *filename,char *name)
 		MessageBox(NULL,buf,"Init Error",MB_OK|MB_ICONERROR);
 		return false;
 	}
-	tex->width = a->w;
-	tex->height = a->h;
-	glBindTexture( GL_TEXTURE_2D, tex->pixels );
+	SDL_PixelFormat *format = a->format;
+	tex.width = a->w;
+	tex.height = a->h;
+	glBindTexture( GL_TEXTURE_2D, tex.pixels );
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
 	if(format->Amask)
@@ -79,7 +85,7 @@ bool TextureManager::AddTexture(char *filename,char *name)
 	else
 		gluBuild2DMipmaps( GL_TEXTURE_2D, 4, a->w, a->h, GL_RGB, GL_UNSIGNED_BYTE, a->pixels );
 	SDL_FreeSurface(a);
-	_Textures.push(tex);
+	_Textures.push_back(tex);
 	return true;
 }
 
@@ -87,35 +93,46 @@ bool TextureManager::BindTexture(char *name)
 {
 	for(unsigned int i=0;i<_Textures.size();i++)
 	{
-		if(strcmp(_Textures[i]->name,name)==0)
+		for(unsigned int j=0; j<_Textures[i].names.size(); j++)
 		{
-			glBindTexture(GL_TEXTURE_2D, _Textures[i]->pixels);
-			return true;
+			if(strcmp(_Textures[i].names[j],name)==0)
+			{
+				glBindTexture(GL_TEXTURE_2D, _Textures[i].pixels);
+				return true;
+			}
 		}
 	}
+	glBindTexture(GL_TEXTURE_2D, _Textures[0].pixels);
 	return false;
 }
 
-TextureInfo *TextureManager::GetTextureinfo(char *name)
+TextureInfo TextureManager::GetTextureinfo(char *name)
 {
 	for(unsigned int i=0;i<_Textures.size();i++)
 	{
-		if(strcmp(_Textures[i]->name,name)==0)
+		for(unsigned int j=0; j<_Textures[i].names.size(); j++)
 		{
-			return _Textures[i];
+			if(strcmp(_Textures[i].names[j],name)==0)
+			{
+				return _Textures[i];
+			}
 		}
 	}
-	TextureInfo *nullInfo = 0;
+	TextureInfo nullInfo = {0};
 	return nullInfo;
 }
 
 void TextureManager::ReloadTextures()
 {
-	for(unsigned int i=_Textures.size(); i>0 ;i--)
+
+	std::vector<TextureInfo> tmp = _Textures;
+	_Textures.clear();
+	for(unsigned int i=0; i<tmp.size();i++)
 	{
-		glDeleteTextures(1,&_Textures[i]->pixels);
-		TextureInfo *tmp = _Textures[i];
-		_Textures.pop();
-		AddTexture(tmp->filename,tmp->name);
+		glDeleteTextures(1,&tmp[i].pixels);
+		for(unsigned int j=0; j<tmp[i].names.size(); j++)
+		{
+			AddTexture(tmp[i].filename,tmp[i].names[j]);
+		}
 	}
 }

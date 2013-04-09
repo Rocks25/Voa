@@ -1,7 +1,5 @@
 #include "..\include\SceneManager.h"
 
-SceneManager *SceneManager::_Instance = 0;
-
 SceneManager::SceneManager(void)
 {
 }
@@ -9,21 +7,41 @@ SceneManager::SceneManager(void)
 
 SceneManager::~SceneManager(void)
 {
-	delete _Instance;
+	Cleanup();
+	
+	for(unsigned int i=0; i<_Scenes.size(); i++)
+	{
+		delete _Scenes[i];
+	}
 }
 
-SceneManager *SceneManager::GetSingleton()
+void SceneManager::Cleanup()
 {
-	if(!_Instance)
-		_Instance = new SceneManager();
-	return _Instance;
+	for(unsigned int i=0; i<_Scenes.size(); i++)
+	{
+		_Scenes[i]->Cleanup();
+	}
+}
+
+void SceneManager::InitAll()
+{
+	for(unsigned int i=0; i<_Scenes.size(); i++)
+	{
+		_Scenes[i]->Init();
+	}
 }
 
 void SceneManager::NewScene(char *name)
 {
 	Scene *newscene = new Scene(name);
-	_Scenes.push(newscene);
-	_CurrScene = _Scenes.Last();
+	_Scenes.push_back(newscene);
+	_CurrScene = _Scenes[_Scenes.size()-1];
+}
+
+void SceneManager::AddScene(Scene *scene)
+{
+	_Scenes.push_back(scene);
+	_CurrScene = _Scenes[_Scenes.size()-1];
 }
 
 bool SceneManager::BindScene(char *name)
@@ -37,6 +55,11 @@ bool SceneManager::BindScene(char *name)
 		}
 	}
 	return false;
+}
+
+std::vector<Scene *> SceneManager::GetAllScenes()
+{
+	return _Scenes;
 }
 
 Scene *SceneManager::GetSceneByName(char *name)
@@ -64,4 +87,10 @@ Scene *SceneManager::GetCurrentScene()
 void SceneManager::RenderScene()
 {
 	_CurrScene->Render();
+}
+
+void SceneManager::RenderScene(char *name)
+{
+	Scene *scene = GetSceneByName(name);
+	scene->Render();
 }

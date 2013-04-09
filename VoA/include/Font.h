@@ -3,13 +3,14 @@
 
 #include <SDL_ttf.h>
 #include "GLShaderProgram.h"
+#include "Color.h"
 
 class Font
 {
 public:
 	Font();
 	~Font();
-	static void Render(const char *text,TTF_Font *font, SDL_Color color);
+	static void Render(const char *text,const char *font, Color color,int ptsize);
 private:
 	static int NextPowerOfTwo(int x);
 	static int Round(double x);

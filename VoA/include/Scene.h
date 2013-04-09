@@ -1,9 +1,7 @@
 #pragma once
 
-#include <glm/gtc/matrix_transform.hpp>
-#include <vector>
-#include "GLShaderProgram.h"
 #include "Entity.h"
+#include <glm/gtc/matrix_transform.hpp>
 
 class Scene
 {
@@ -13,22 +11,24 @@ public:
 	virtual void Cleanup();
 	virtual void Init();
 	virtual void InitTextures();
-	void Translate(float x, float y, float z);
-	void Translate(glm::vec3 pos);
-	void Rotate(float angle, float x, float y, float z);
-	void Rotate(float angle, glm::vec3 dir);
-	void Scale(float x, float y, float z);
-	void Scale(glm::vec3 scale);
-	void AddEntity(Entity *ent);
-	Entity *GetEntityByName(const char *name);
-	void Render();
-	char *GetName();
-
-private:
+//	virtual void Translate(float x, float y, float z);
+//	virtual void Translate(glm::vec3 pos);
+//	virtual void Rotate(float angle, float x, float y, float z);
+//	virtual void Rotate(float angle, glm::vec3 dir);
+//	virtual void Scale(float x, float y, float z);
+//	virtual void Scale(glm::vec3 scale);
+	virtual void AddEntity(Entity *ent);
+	virtual unsigned int GetNumEntities();
+	virtual std::vector<Entity *> GetAllEntities();
+	virtual Entity *GetEntityByName(const char *name);
+	virtual void Render();
+	virtual char *GetName();
+	
+protected:
 	char *_Name;
 	glm::mat4 projMat;
 	glm::mat4 viewMat;
 	glm::mat4 modelMat;
-	std::vector<Entity *> _entities;
+	std::vector<Entity *> _Entities;
 };
 

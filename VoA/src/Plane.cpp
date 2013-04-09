@@ -1,5 +1,5 @@
 #include "../include/Plane.h"
-#include "../include/WindowFunctions.h"
+#include "../include/window_includes.h"
 
 
 Plane::Plane(float width,float height)

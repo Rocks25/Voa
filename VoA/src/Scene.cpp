@@ -10,58 +10,72 @@ Scene::Scene(char *name)
 Scene::~Scene(void)
 {
 	Cleanup();
+	if(!_Entities.empty())
+	{
+		_Entities.clear();
+	}
 }
 
 void Scene::Cleanup()
 {
-	if(!_entities.empty())
+	if(!_Entities.empty())
 	{
-		for(unsigned int i=0;i<_entities.size();i++)
+		for(unsigned int i=0;i<_Entities.size();i++)
 		{
-			_entities[i]->Cleanup();
-			delete _entities[i];
+			_Entities[i]->Cleanup();
+			delete _Entities[i];
+			_Entities.erase(_Entities.begin()+i);
 		}
-		_entities.clear();
 	}
 }
 
 void Scene::Init()
 {
-	for(unsigned int i=0;i<_entities.size();i++)
+	for(unsigned int i=0;i<_Entities.size();i++)
 	{
-		_entities[i]->Init();
+		_Entities[i]->Init();
 	}
 }
 
 void Scene::InitTextures()
 {
-	for(unsigned int i=0;i<_entities.size();i++)
+	for(unsigned int i=0;i<_Entities.size();i++)
 	{
-		_entities[i]->InitTextures();
+		_Entities[i]->InitTextures();
 	}
 }
 
 void Scene::AddEntity(Entity *ent)
 {
-	_entities.push_back(ent);
+	_Entities.push_back(ent);
 }
 
 Entity *Scene::GetEntityByName(const char *name)
 {
-	Entity *ent=0;
-	for(unsigned int i=0;i<_entities.size();i++)
+	Entity *ent = 0;
+	for(unsigned int i=0;i<_Entities.size();i++)
 	{
-		if(_entities[i]->GetName() == name)
-			ent = _entities[i];
+		if(_Entities[i]->GetName() == name)
+			ent = _Entities[i];
 	}
 	return ent;
 }
 
+std::vector<Entity*> Scene::GetAllEntities()
+{
+	return _Entities;
+}
+
+unsigned int Scene::GetNumEntities()
+{
+	return _Entities.size();
+}
+
 void Scene::Render()
 {
-	for(unsigned int i=0;i<_entities.size();i++)
+	for(unsigned int i=0;i<_Entities.size();i++)
 	{
-		_entities[i]->Render();
+		_Entities[i]->Render();
 	}
 }
 

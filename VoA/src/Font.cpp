@@ -9,8 +9,16 @@ Font::Font()
 Font::~Font()
 {
 }
-void Font::Render(const char *text,TTF_Font *font, SDL_Color color)
+void Font::Render(const char *text,const char *fontpath, Color color, int ptsize)
 {
+	TTF_Font *font = TTF_OpenFont(fontpath,ptsize);
+	if(!font)
+	{
+		char buf[512];
+		sprintf_s(buf,"Error loading font: %s", TTF_GetError());
+		MessageBox(NULL,buf,"Font Error!",MB_OK);
+	}
+
 	SDL_Surface *initial;
 	SDL_Surface *intermediary;
 	int w,h;
@@ -19,7 +27,7 @@ void Font::Render(const char *text,TTF_Font *font, SDL_Color color)
 	if(!font)
 		return;
 	/* Use SDL_TTF to render our text */
-	initial = TTF_RenderText_Blended(font, text, color);
+	initial = TTF_RenderText_Blended(font, text, color.ToSDLFormat());
 	
 	/* Convert the rendered text to a known format */
 	w = NextPowerOfTwo(initial->w);
@@ -43,7 +51,7 @@ void Font::Render(const char *text,TTF_Font *font, SDL_Color color)
 	/* prepare to render our texture */
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, texture);
-	glColor3f(1.0f, 1.0f, 1.0f);
+	glColor4f(color.r/255.0f, color.g/255.0f, color.b/255.0f, color.a/255.0f);
 	
 	/* Draw a quad at location */
 	Plane::Render(0,0,(float)w,(float)h);

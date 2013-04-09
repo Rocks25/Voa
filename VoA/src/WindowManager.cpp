@@ -1,47 +1,61 @@
 #include "..\include\WindowManager.h"
-#include "..\include\WindowFunctions.h"
+#include "..\include\window_includes.h"
 #include "..\include\Game.h"
 #include "..\include\TextureManager.h"
-WindowManager *WindowManager::_Instance = NULL;
+#include "..\include\About.h"
 
 WindowManager::WindowManager(void)
 {
 	_Fullscreen = false;
 	_GrabMouse=false;
 	_Renderer = new OpenGLRenderer();
+	_Initialized = false;
 }
 
 
 WindowManager::~WindowManager(void)
 {
-	delete _Instance;
 	delete _Renderer;
 }
 
-WindowManager *WindowManager::GetSingleton()
+void WindowManager::Cleanup()
 {
-	if(!_Instance)
-		_Instance = new WindowManager();
-	return _Instance;
+	GetRenderer()->Cleanup();
+	TM->Cleanup();
+	IsGLErrors("Cleanup()");
 }
 
 void WindowManager::ProcessEvent(SDL_Event *event)
 {
+	About *about = (About *)SM->GetSceneByName("About");
+	about->Resize();
 	switch(event->type)					// See which event it is
     {
 		// When window is resized or is toggled between window and fullscreen
 	case SDL_VIDEORESIZE:
 		//Cleanup();
+		InitOpenGL();
+		IsGLErrors("Video Resize");
+		if(!WM->IsFullscreen())
+		{
+			SetWindowedMode(0, 0, event->resize.w, event->resize.h);
+		}
 		glViewport(0,0,event->resize.w,event->resize.h);		// Resize OpenGL Viewport to fit the screen/window
-		WindowManager::GetSingleton()->InitOpenGL();
-		WindowManager::GetSingleton()->GetRenderer()->InitShaders();
-		WindowManager::GetSingleton()->GetRenderer()->InitFramebuffer();
-		TextureManager::GetSingleton()->ReloadTextures();
+		SM->InitAll();
 		break;
 		// When user quits the game
     case SDL_QUIT:
 		Game::Quit();
         break;
+	case SDL_ACTIVEEVENT:
+		if(event->active.state & SDL_APPACTIVE)
+		{
+			if(event->active.gain)
+				Game::SetActiveState(true);
+			else
+				Game::SetActiveState(false);
+		}
+		break;
 	default:
 		break;
 	}
@@ -60,16 +74,29 @@ bool WindowManager::CreateSDLWindow()
 		return false;
 	char buf[1024] = {0};
 	sprintf_s(buf,"%d x %d",_FSModes[0]->w,_FSModes[0]->h);
-	for(int i=1; _FSModes[i]; i++)
+	int i;
+	for(i=1; _FSModes[i]; i++)
 	{
 		char tmp[20];
 		sprintf_s(tmp,"\n%d x %d",_FSModes[i]->w,_FSModes[i]->h);
 		strcat_s(buf,tmp);
 	}
 	MessageBox(NULL,buf,"Supported Modes",MB_OK);
-	_CurrentFSMode=_FSModes[0];
-	SetFullscreenMode(_CurrentFSMode);			//			and resizable, or return that there has been an error
-												// Point the global window variable to the new SDL surface
+	_CurrentFSMode=_FSModes[0];					// Point the global window variable to the new SDL surface
+	
+	if(_Fullscreen)
+	{
+		_Window=SDL_SetVideoMode(_CurrentFSMode->w, _CurrentFSMode->h, 0, SDL_HWSURFACE|SDL_OPENGL|SDL_FULLSCREEN);			//			and resizable, or return that there has been an error
+	}
+	else
+	{
+		SDL_Rect Mode;
+		Mode.x = Mode.y = 0;
+		Mode.w = 800;
+		Mode.h = 600;
+		_CurrentWMode = Mode;
+		_Window=SDL_SetVideoMode(_CurrentWMode.w, _CurrentWMode.h, 0, SDL_HWSURFACE | SDL_OPENGL);
+	}
 
 	GrabMouse();
 
@@ -89,10 +116,14 @@ bool WindowManager::InitOpenGL()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);			// Type Of Blending To Perform
     glHint(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);			// Nicest Perspective Calculations
     glHint(GL_POINT_SMOOTH_HINT,GL_NICEST);						// Nicest Point Smoothing
-	if(glewInit()!=GLEW_OK)
-		return false;											// Initialize GL Extensions
+	if(!_Initialized)
+	{
+		if(glewInit()!=GLEW_OK)
+			return false;											// Initialize GL Extensions
+	}
 
 	IsGLErrors("GL Init");										// If there are any errors, tell us
+	_Initialized = true;
 	return true;
 }
 
@@ -106,36 +137,46 @@ int WindowManager::GetWindowHeight()
 	return _Window->h;
 }
 
+SDL_Surface *WindowManager::GetWindowHandle()
+{
+	return _Window;
+}
+
 void WindowManager::ToggleFullscreen()
 {
 	if(_Fullscreen)		// Check if we are already in fullscreen, and if we are
 	{
-		_Window=SDL_SetVideoMode(800, 600, 32, SDL_OPENGL | SDL_RESIZABLE);		// Switch to windowed
+		ShowNormal();		// Switch to windowed
 	}
 	else				// Otherwise
 	{
-		_Window=SDL_SetVideoMode(1024, 768, 32, SDL_HWSURFACE|SDL_OPENGL|SDL_FULLSCREEN);		// Switch to Fullscreen
-
+		ShowFullscreen();		// Switch to Fullscreen
 	}
-	_Fullscreen=!_Fullscreen;		// toggle fullscreen variable
+
+	IsGLErrors("ToggleFullscreen");
 }
 
 void WindowManager::ShowNormal()
 {
-	if(_Fullscreen)				// Otherwise
+	if(_Fullscreen)
 	{
-		_Window=SDL_SetVideoMode(_CurrentWMode->w, _CurrentWMode->h, 32, SDL_OPENGL | SDL_RESIZABLE);		// Switch to Fullscreen
-		_Fullscreen=false;
+		Cleanup();
+		Game::SetActiveState(false);
+		_Window=SDL_SetVideoMode(_CurrentWMode.w, _CurrentWMode.h, 0, SDL_HWSURFACE | SDL_OPENGL);		// Switch to Fullscreen
+		Reinitialize();
 	}
+	_Fullscreen=false;
 }
 
 void WindowManager::ShowFullscreen()
 {
-	if(!_Fullscreen)				// Otherwise
+	if(!_Fullscreen)
 	{
-		_Window=SDL_SetVideoMode(_CurrentFSMode->w, _CurrentFSMode->h, 32, SDL_HWSURFACE|SDL_OPENGL|SDL_FULLSCREEN);		// Switch to Fullscreen
-		_Fullscreen=true;
+		Cleanup();
+		_Window=SDL_SetVideoMode(_CurrentFSMode->w, _CurrentFSMode->h, 0, SDL_HWSURFACE|SDL_OPENGL|SDL_FULLSCREEN);		// Switch to Fullscreen
+		Reinitialize();
 	}
+	_Fullscreen=true;
 }
 
 bool WindowManager::IsFullscreen()
@@ -145,13 +186,12 @@ bool WindowManager::IsFullscreen()
 
 void WindowManager::SetWindowedMode(int x, int y, int w, int h)
 {
-	SDL_Rect *Mode = new SDL_Rect();
-	Mode->x=x;
-	Mode->y=y;
-	Mode->w=w;
-	Mode->h=h;
-	delete _CurrentWMode;
-	_CurrentWMode=Mode;
+	SDL_Rect Mode;
+	Mode.x=x;
+	Mode.y=y;
+	Mode.w=w;
+	Mode.h=h;
+	_CurrentWMode = Mode;
 }
 
 void WindowManager::SetFullscreenMode(int w, int h)
@@ -175,11 +215,15 @@ void WindowManager::SetFullscreenMode(int w, int h)
 			return;
 		}
 	}
+
+	Reinitialize();
 }
 
-void WindowManager::SetWindowedMode(SDL_Rect *Mode)
+void WindowManager::SetWindowedMode(SDL_Rect Mode)
 {
 	_CurrentWMode=Mode;
+
+	Reinitialize();
 }
 
 void WindowManager::SetFullscreenMode(SDL_Rect *Mode)
@@ -188,15 +232,17 @@ void WindowManager::SetFullscreenMode(SDL_Rect *Mode)
 	{
 		if(_FSModes[i]==Mode)
 		{
-			if((_Window = SDL_SetVideoMode(Mode->w, Mode->h, 32, SDL_OPENGL | SDL_HWSURFACE | SDL_FULLSCREEN))==NULL)
+			if((_Window = SDL_SetVideoMode(Mode->w, Mode->h, 0, SDL_OPENGL | SDL_HWSURFACE | SDL_FULLSCREEN))==NULL)
 			{
-				_Window = SDL_SetVideoMode(_CurrentFSMode->w, _CurrentFSMode->h, 32, SDL_OPENGL | SDL_HWSURFACE | SDL_FULLSCREEN);
+				_Window = SDL_SetVideoMode(_CurrentFSMode->w, _CurrentFSMode->h, 0, SDL_OPENGL | SDL_HWSURFACE | SDL_FULLSCREEN);
 				return;
 			}
 			_CurrentFSMode = _FSModes[i];
 			return;
 		}
 	}
+
+	Reinitialize();
 }
 
 
@@ -223,4 +269,14 @@ bool WindowManager::IsMouseGrabbed()
 OpenGLRenderer *WindowManager::GetRenderer()
 {
 	return _Renderer;
+}
+
+void WindowManager::Reinitialize()
+{
+	glViewport(0,0,_Window->w,_Window->h);		// Resize OpenGL Viewport to fit the screen/window
+	IsGLErrors("ToggleFullscreen");
+	InitOpenGL();
+	TM->ReloadTextures();
+	GetRenderer()->ReinitializeAll();
+	Game::SetActiveState(true);
 }

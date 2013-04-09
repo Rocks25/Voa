@@ -2,19 +2,21 @@
 #include "../include/GLShader.h"
 #include "../include/TextureManager.h"
 #include "../include/WindowManager.h"
+#include "../include/GlobalMatrices.h"
+#include "../include/Plane.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 
 
-Ship::Ship(float size, const char *name) : Mesh(name), modelMat(1.0f)
+Ship::Ship(float size, const char *name) : Mesh(name)
 {
     this->size = size;
 	throttle=0.0f;
 }
 Ship::~Ship()
 {
-	/*pEngineL.Clear();
-	pEngineR.Clear();*/
+	/*pEngineL.clear();
+	pEngineR.clear();*/
 }
 
 void Ship::Init()
@@ -25,7 +27,7 @@ void Ship::Init()
 
 void Ship::Render()
 {
-	GLShaderProgram *program = WindowManager::GetSingleton()->GetRenderer()->GetCurrentShader();
+	GLShaderProgram *program = WM->GetRenderer()->GetCurrentShader();
     float newWidth = (width/2.0f)*size;
     float newHeight = (height/2.0f)*size;
 
@@ -42,7 +44,6 @@ void Ship::Render()
 	
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	int modelMatrixLoc = glGetUniformLocation(program->GetProgramID(),"modelMat");
 	/*GLfloat vertices[] = {
 		+newWidth,+newHeight,0.0f,
 		-newWidth,+newHeight,0.0f,
@@ -51,14 +52,22 @@ void Ship::Render()
 		+newWidth,-newHeight,0.0f,
 		-newWidth,+newHeight,0.0f,
 		-newWidth,-newHeight,0.0f};*/
-	glUniformMatrix4fv(modelMatrixLoc,1,GL_FALSE,&modelMat[0][0]);
+	GMat->ModelMatrix()->PushMatrix();
 
+	GMat->ModelMatrix()->Translate(_Position.x, _Position.y, _Position.z);
+	GMat->ModelMatrix()->Rotate(_Rotation.x,1.0f, 0.0f, 0.0f);
+	GMat->ModelMatrix()->Rotate(_Rotation.y,0.0f, 1.0f, 0.0f);
+	GMat->ModelMatrix()->Rotate(_Rotation.z,0.0f, 0.0f, 1.0f);
+
+	GMat->ModelMatrix()->Scale(_Scale);
+
+	GMat->UpdateShader();
     glActiveTexture(GL_TEXTURE0);
-	TextureManager::GetSingleton()->BindTexture("Ship");
+	TM->BindTexture("Ship");
     program->SetUniformValue("tex",0);
 
     glActiveTexture(GL_TEXTURE1);
-	TextureManager::GetSingleton()->BindTexture("Ship_Alpha");
+	TM->BindTexture("Ship_Alpha");
     program->SetUniformValue("alpha",1);
 
 	glEnableClientState(GL_VERTEX_ARRAY);
@@ -75,46 +84,31 @@ void Ship::Render()
 	/*glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _nVBOIndeces);
 	glIndexPointer(GL_UNSIGNED_BYTE,0,NULL);*/
 
+	GMat->UpdateShader();
 	glDrawArrays(GL_TRIANGLE_STRIP,0,4);
 
 	//glDisableClientState(GL_INDEX_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);
+
+	Plane::Render(-width/2.0f,-height/2.0f,(float)width,(float)height);
+
+	GMat->ModelMatrix()->PopMatrix();
 }
 
 void Ship::InitTextures()
 {
-	TextureManager::GetSingleton()->AddTexture("images/ship.jpg", "Ship");
-	TextureManager::GetSingleton()->AddTexture("images/ship_alpha.jpg", "Ship_Alpha");
-	TextureInfo *info = TextureManager::GetSingleton()->GetTextureinfo("Ship");
-	width = info->width;
-	height = info->height;
+	TM->AddTexture("images/ship.jpg", "Ship");
+	TM->AddTexture("images/ship_alpha.jpg", "Ship_Alpha");
+	TextureInfo info = TM->GetTextureinfo("Ship");
+	width = info.width;
+	height = info.height;
 }
 
 float Ship::GetSize()
 {
     return size;
-}
-
-glm::vec3 Ship::GetDirection()
-{
-	glm::vec4 dir = -modelMat*glm::vec4(1.0f,1.0f,1.0f,0.0f);
-    return glm::vec3(dir.x,dir.y,dir.z);
-}
-
-glm::vec3 Ship::GetPosition()
-{
-	glm::vec4 pos = modelMat*glm::vec4(1.0f);
-    return glm::vec3(pos.x,pos.y,pos.z);
-}
-
-glm::vec3 Ship::GetRotation()
-{
-	float heading = atan(modelMat[0][1]/modelMat[0][0]);
-	float bank = atan(modelMat[1][2]/modelMat[2][2]);
-	float attitude = asin(-modelMat[0][2]);
-	return glm::vec3(attitude,bank,heading);
 }
 
 void Ship::SetSize(float size)
@@ -127,27 +121,6 @@ void Ship::SetSize(float size)
     this->size=newsize_s;
     /*pEngineL.SetSize(newsize_p);
     pEngineR.SetSize(newsize_p);*/
-}
-
-void Ship::SetDirection(glm::vec3 dir)
-{
-    //direction=dir;
-}
-
-void Ship::SetPosition(glm::vec3 pos)
-{
-	modelMat = glm::translate(modelMat, pos);
-}
-
-void Ship::SetRotation(glm::vec3 rot)
-{
-	glm::mat4 tmpPos;
-	tmpPos = glm::rotate(rot.x,glm::vec3(1,0,0));
-	tmpPos = glm::rotate(rot.y,glm::vec3(0,1,0));
-	tmpPos = glm::rotate(rot.z,glm::vec3(0,0,1));
-	modelMat *= tmpPos;
-	/*pEngineL.SetPositionMat(tmpPos*pEngineL.GetPositionMat());
-	pEngineR.SetPositionMat(tmpPos*pEngineR.GetPositionMat());*/
 }
 
 void Ship::SetThrottle(float throt)
@@ -211,6 +184,11 @@ void Ship::InitGeometry()
 	glBindBuffer( GL_ARRAY_BUFFER, _nVBOColors );        // Bind The Buffer
     // Load The Data
 	glBufferData( GL_ARRAY_BUFFER, 4*4*sizeof(GLfloat), colors, GL_STATIC_DRAW );
+
+	//SetPosition(glm::vec3(0,0,0));
+	SetPosition(glm::vec3(WM->GetWindowWidth()/2.0f-(width*_Scale.x)/2.0f,WM->GetWindowHeight()/2.0f-(height*_Scale.y)/2.0f,0));
+	SetRotation(glm::vec3(0,0,0));
+	SetScale(glm::vec3(.25,.25,.25));
 }
 
 glm::vec3 Ship::GetBoundingBox()

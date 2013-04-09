@@ -5,9 +5,12 @@
 class PlayerController
 {
 protected:
+	bool keys[512];
+public:
 	PlayerController(void);
 	~PlayerController(void);
-public:
 	void ProcessKeyboardEvent(SDL_Event *event);
+	void ProcessKeyboardControls();
 };
 
+extern PlayerController *PC;

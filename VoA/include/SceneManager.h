@@ -1,21 +1,22 @@
 #pragma once
 
 #include "Scene.h"
-#include "vector.h"
+#include <vector>
 
 class SceneManager
 {
 private:
-	static SceneManager *_Instance;
-	Vector<Scene *> _Scenes;
+	std::vector<Scene *> _Scenes;
 	Scene *_CurrScene;
-protected:
+public:
 	SceneManager(void);
 	~SceneManager(void);
-public:
-	static SceneManager *GetSingleton();
+	void Cleanup();
+	void InitAll();
 	void NewScene(char *name);
+	void AddScene(Scene *scene);
 	bool BindScene(char *name);
+	std::vector<Scene *> GetAllScenes();
 	Scene *GetSceneByName(char *name);
 	char *GetCurrentSceneName();
 	Scene *GetCurrentScene();
@@ -23,3 +24,4 @@ public:
 	void RenderScene(char *);
 };
 
+extern SceneManager *SM;

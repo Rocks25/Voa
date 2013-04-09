@@ -7,10 +7,6 @@ GLShaderProgram::GLShaderProgram(char *name)
 
 GLShaderProgram::~GLShaderProgram()
 {
-	for(unsigned int i=0; i<_Shaders.size(); i++)
-	{
-		_Shaders.pop();
-	}
 }
 
 void GLShaderProgram::Create()
@@ -30,18 +26,18 @@ char *GLShaderProgram::GetName()
 
 void GLShaderProgram::NewVertexShader(char *filename)
 {
-	GLShader *vshader = new GLShader(GL_VERTEX_SHADER, filename);
-	vshader->Init();
-	glAttachShader(programID,vshader->GetShaderID());
-	_Shaders.push(vshader);
+	GLShader vshader(GL_VERTEX_SHADER, filename);
+	vshader.Init();
+	glAttachShader(programID,vshader.GetShaderID());
+	_Shaders.push_back(vshader);
 }
 
 void GLShaderProgram::NewFragmentShader(char *filename)
 {
-	GLShader *fshader = new GLShader(GL_FRAGMENT_SHADER, filename);
-	fshader->Init();
-	glAttachShader(programID,fshader->GetShaderID());
-	_Shaders.push(fshader);
+	GLShader fshader(GL_FRAGMENT_SHADER, filename);
+	fshader.Init();
+	glAttachShader(programID,fshader.GetShaderID());
+	_Shaders.push_back(fshader);
 }
 
 void GLShaderProgram::Link()
@@ -58,4 +54,9 @@ void GLShaderProgram::SetUniformValue(const char *name, int value)
 {
 	GLint pos = glGetUniformLocation(programID,name);
 	glUniform1i(pos,value);
+}
+
+std::vector<GLShader> GLShaderProgram::GetShaders()
+{
+	return _Shaders;
 }

@@ -19,25 +19,21 @@ void MenuController::ProcessKeyboardEvents(SDL_Event *event)
 	case SDL_KEYDOWN:
 		switch(event->key.keysym.sym)
         {
-		case SDLK_F1:
-			if(Game::GetCurrentMode()==GM_PLAY)
-				Game::SwitchMode(GM_MAINMENU);
-			else
-				Game::SwitchMode(GM_PLAY);
+		case SDLK_ESCAPE:
+			Game::SwitchMode(GM_PLAY);
 			break;
 		case 'm':
-			if(WindowManager::GetSingleton()->IsMouseGrabbed())
-				WindowManager::GetSingleton()->ReleaseMouse();
+			if(WM->IsMouseGrabbed())
+				WM->ReleaseMouse();
 			else
-				WindowManager::GetSingleton()->GrabMouse();
+				WM->GrabMouse();
 			break;
         case 'q':
-        case SDLK_ESCAPE:
 			Game::Quit();				// End main loop
-			Game::SwitchMode(SDL_QUIT);
+			Game::SwitchMode(GM_QUIT);
             break;
 		case 'f':				// If 'f' key was pressed
-			WindowManager::GetSingleton()->ToggleFullscreen();
+			WM->ToggleFullscreen();
 			break;
         default:
             break;
