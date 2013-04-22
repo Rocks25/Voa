@@ -16,7 +16,7 @@ void GlobalEventManager::ProcessEvent(SDL_Event *event)
 	if(event->type==SDL_KEYDOWN || event->type==SDL_KEYUP)
 	{
 		//Send to Game class for it to send to proper handler
-		Game::ProcessKeyboardEvent(event);
+		Game->ProcessKeyboardEvent(event);
 	}
 	if(event->type==SDL_VIDEORESIZE || SDL_VIDEOEXPOSE || SDL_ACTIVEEVENT)
 	{

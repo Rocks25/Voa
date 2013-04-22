@@ -13,24 +13,28 @@ public:
 	virtual void Cleanup();
 	virtual void Init();
 	virtual void InitTextures();
-	void AddMesh(Mesh *mesh);
+	virtual void AddMesh(Mesh *mesh);
 	const char *GetName();
 	unsigned int GetNumMeshes();
 	std::vector<Mesh *> GetAllMeshes();
 	void SetName(const char *name);
 	Mesh *GetMeshByName(const char *name);
-	void Translate(float x, float y, float z);
-	void Translate(glm::vec3 pos);
-	void Rotate(float angle, float x, float y, float z);
-	void Rotate(float angle, glm::vec3 axis);
-	void Scale(float x, float y, float z);
-	void Scale(glm::vec3 scale);
-	void ResetMatrix();
-	void Render();
+	virtual glm::vec3 GetPosition();
+	virtual void SetPosition(int x, int y, int z);
+	virtual void SetPosition(glm::vec3 pos);
+	virtual void Translate(float x, float y, float z);
+	virtual void Translate(glm::vec3 pos);
+	virtual void Rotate(float x, float y, float z);
+	virtual void Rotate(glm::vec3 rot);
+	virtual void Scale(float x, float y, float z);
+	virtual void Scale(glm::vec3 scale);
+	virtual void Render();
 
-private:
+protected:
 	const char *_Name;
 	std::vector<Mesh *> _Meshes;
-	glm::mat4 _modelMat;
+	glm::vec3 _Position;
+	glm::vec3 _Rotation;
+	glm::vec3 _Scale;
 };
 

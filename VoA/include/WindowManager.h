@@ -9,6 +9,7 @@ class WindowManager
 private:
 	SDL_Surface *_Window;
 	SDL_Rect **_FSModes;
+	int numAvailableModes;
 	SDL_Rect *_CurrentFSMode;
 	SDL_Rect _CurrentWMode;
 	bool _Fullscreen;
@@ -16,6 +17,8 @@ private:
 	bool _GrabKeyboard;
 	OpenGLRenderer *_Renderer;
 	bool _Initialized;
+	bool _Active;
+	bool _Running;
 public:
 	WindowManager(void);
 	~WindowManager(void);
@@ -26,6 +29,8 @@ public:
 	int GetWindowWidth();
 	int GetWindowHeight();
 	SDL_Surface *GetWindowHandle();
+	SDL_Rect **GetAvailableModes();
+	int GetNumAvailableModes();
 	void ToggleFullscreen();
 	void ShowNormal();
 	void ShowFullscreen();
@@ -35,6 +40,9 @@ public:
 	void SetWindowedMode(SDL_Rect Mode);
 	void SetFullscreenMode(SDL_Rect *Mode);
 	void Reinitialize();
+	bool IsActive();
+	bool IsRunning();
+	void Quit();
 
 	// Input Capture Methods
 	void GrabMouse();

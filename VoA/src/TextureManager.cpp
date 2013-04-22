@@ -1,6 +1,9 @@
 #include "..\include\TextureManager.h"
 #include "..\include\window_includes.h"
+#include "..\include\Error.h"
 #include "..\include\sdl_invert.h"
+#include "..\include\WindowManager.h"
+#include <string>
 
 
 
@@ -51,9 +54,17 @@ bool TextureManager::AddTexture(char *filename,char *name)
 			for(unsigned int j=0;j<_Textures[i].names.size();j++)
 			{
 				if(strcmp(_Textures[i].names[j],name)==0)
+				{
+					char buf[512];
+					sprintf(buf,"Duplicate Texture Name '%s'!",name);
+					//Error->NewError(buf);
 					return false;
+				}
 				else if(strcmp(_Textures[i].filename,filename)==0)
 				{
+					char buf[512];
+					sprintf(buf,"Duplicate Filename '%s'!",filename);
+					Error->NewError(buf);
 					_Textures[i].names.push_back(name);
 					return true;
 				}
@@ -64,14 +75,13 @@ bool TextureManager::AddTexture(char *filename,char *name)
 	tex.names.push_back(name);
 	tex.filename = filename;
 
-
 	glGenTextures(1,&tex.pixels);
     SDL_Surface *a = IMG_Load(filename);
 	if(!a)
 	{
-		char buf[255]={0};
+		char buf[256]={0};
 		sprintf_s(buf,"Error loading image. '%s'!",IMG_GetError());
-		MessageBox(NULL,buf,"Init Error",MB_OK|MB_ICONERROR);
+		Error->NewError(buf);
 		return false;
 	}
 	SDL_PixelFormat *format = a->format;
@@ -95,14 +105,20 @@ bool TextureManager::BindTexture(char *name)
 	{
 		for(unsigned int j=0; j<_Textures[i].names.size(); j++)
 		{
-			if(strcmp(_Textures[i].names[j],name)==0)
+			char *tmp = _Textures[i].names[j];
+			if(strcmp(tmp,name)==0)
 			{
 				glBindTexture(GL_TEXTURE_2D, _Textures[i].pixels);
+				WM->GetRenderer()->GetShaderProgramByName("Main")->SetUniformValue("tex",0);
+				WM->GetRenderer()->GetShaderProgramByName("Main")->SetUniformValue("alpha",1);
 				return true;
 			}
 		}
 	}
 	glBindTexture(GL_TEXTURE_2D, _Textures[0].pixels);
+	char buf[512] = {0};
+	sprintf(buf,"Cannot Find Texture '%s'!.",name);
+	Error->NewError(&buf[0]);
 	return false;
 }
 
@@ -124,15 +140,43 @@ TextureInfo TextureManager::GetTextureinfo(char *name)
 
 void TextureManager::ReloadTextures()
 {
+	std::vector<std::vector<char *>> names;
+	std::vector<char *> filenames;
 
-	std::vector<TextureInfo> tmp = _Textures;
-	_Textures.clear();
-	for(unsigned int i=0; i<tmp.size();i++)
+	for(unsigned int i=0; i<_Textures.size();i++)
 	{
-		glDeleteTextures(1,&tmp[i].pixels);
-		for(unsigned int j=0; j<tmp[i].names.size(); j++)
+		//Delete all texture data
+		glDeleteTextures(1,&_Textures[i].pixels);
+
+		// Grab texture names and filename
+		names.push_back(_Textures[i].names);
+		filenames.push_back(_Textures[i].filename);
+	}
+	_Textures.clear(); // delete all textures from array
+
+	for(unsigned int i=0; i<filenames.size();i++)
+	{
+		for(unsigned int j=0; j<names[i].size(); j++)
 		{
-			AddTexture(tmp[i].filename,tmp[i].names[j]);
+			// Add textures back in
+			AddTexture(filenames[i],names[i][j]);
 		}
 	}
+}
+
+bool TextureManager::TextureExists(char *name)
+{
+	for(unsigned int i=0;i<_Textures.size();i++)
+	{
+		for(unsigned int j=0; j<_Textures[i].names.size(); j++)
+		{
+			char *tmp = _Textures[i].names[j];
+			if(strcmp(tmp,name)==0)
+			{
+				return true;
+			}
+		}
+	}
+
+	return false;
 }

@@ -13,15 +13,16 @@ public:
 	~SceneManager(void);
 	void Cleanup();
 	void InitAll();
-	void NewScene(char *name);
-	void AddScene(Scene *scene);
+	void NewHUDElement(char *name);
+	void AddElement(Scene *scene);
 	bool BindScene(char *name);
 	std::vector<Scene *> GetAllScenes();
 	Scene *GetSceneByName(char *name);
 	char *GetCurrentSceneName();
 	Scene *GetCurrentScene();
-	void RenderScene();
-	void RenderScene(char *);
+	void RenderElement();
+	void RenderElement(char *name);
+	void RemoveElement(char *name);
 };
 
 extern SceneManager *SM;

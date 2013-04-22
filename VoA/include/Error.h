@@ -1,14 +1,22 @@
 #pragma once
 
-#include "vector.h"
+#include <vector>
 
-class Error
+struct ErrorMessage
 {
-private:
-
-public:
-	Error(void);
-	~Error(void);
-	static void Print(const char *text);
+	char *message;
+	int life;
 };
 
+class Errors
+{
+private:
+	std::vector<ErrorMessage> messages;
+public:
+	Errors(void);
+	~Errors(void);
+	void NewError(char *text);
+	void PrintErrors();
+};
+
+extern Errors *Error;

@@ -6,7 +6,7 @@
 #include "GLShader.h"
 #include "GLShaderProgram.h"
 #include "Scene.h"
-#include "About.h"
+#include "MainMenu.h"
 
 #define TICK_INTERVAL		30
 

@@ -2,7 +2,8 @@
 #include "..\include\window_includes.h"
 #include "..\include\Game.h"
 #include "..\include\TextureManager.h"
-#include "..\include\About.h"
+#include "..\include\MainMenu.h"
+#include "..\include\OptionsMenu.h"
 
 WindowManager::WindowManager(void)
 {
@@ -10,6 +11,7 @@ WindowManager::WindowManager(void)
 	_GrabMouse=false;
 	_Renderer = new OpenGLRenderer();
 	_Initialized = false;
+	_Running = true;
 }
 
 
@@ -27,8 +29,8 @@ void WindowManager::Cleanup()
 
 void WindowManager::ProcessEvent(SDL_Event *event)
 {
-	About *about = (About *)SM->GetSceneByName("About");
-	about->Resize();
+	MainMenu *mainmenu = (MainMenu *)SM->GetSceneByName("Main Menu");
+	OptionsMenu *optionsmenu = (OptionsMenu *)SM->GetSceneByName("Options Menu");
 	switch(event->type)					// See which event it is
     {
 		// When window is resized or is toggled between window and fullscreen
@@ -44,16 +46,20 @@ void WindowManager::ProcessEvent(SDL_Event *event)
 		SM->InitAll();
 		break;
 		// When user quits the game
+	case SDL_VIDEOEXPOSE:
+		mainmenu->Resize();
+		optionsmenu->Resize();
+		break;
     case SDL_QUIT:
-		Game::Quit();
+		_Running=false;
         break;
 	case SDL_ACTIVEEVENT:
 		if(event->active.state & SDL_APPACTIVE)
 		{
 			if(event->active.gain)
-				Game::SetActiveState(true);
+				_Active = true;
 			else
-				Game::SetActiveState(false);
+				_Active = false;
 		}
 		break;
 	default:
@@ -72,16 +78,6 @@ bool WindowManager::CreateSDLWindow()
 	_FSModes = SDL_ListModes(NULL, SDL_OPENGL | SDL_HWSURFACE | SDL_FULLSCREEN);
 	if(_FSModes == (SDL_Rect**)0 || _FSModes == (SDL_Rect **)-1)
 		return false;
-	char buf[1024] = {0};
-	sprintf_s(buf,"%d x %d",_FSModes[0]->w,_FSModes[0]->h);
-	int i;
-	for(i=1; _FSModes[i]; i++)
-	{
-		char tmp[20];
-		sprintf_s(tmp,"\n%d x %d",_FSModes[i]->w,_FSModes[i]->h);
-		strcat_s(buf,tmp);
-	}
-	MessageBox(NULL,buf,"Supported Modes",MB_OK);
 	_CurrentFSMode=_FSModes[0];					// Point the global window variable to the new SDL surface
 	
 	if(_Fullscreen)
@@ -161,7 +157,7 @@ void WindowManager::ShowNormal()
 	if(_Fullscreen)
 	{
 		Cleanup();
-		Game::SetActiveState(false);
+		_Active=false;
 		_Window=SDL_SetVideoMode(_CurrentWMode.w, _CurrentWMode.h, 0, SDL_HWSURFACE | SDL_OPENGL);		// Switch to Fullscreen
 		Reinitialize();
 	}
@@ -196,25 +192,11 @@ void WindowManager::SetWindowedMode(int x, int y, int w, int h)
 
 void WindowManager::SetFullscreenMode(int w, int h)
 {
-	SDL_Rect Mode;
-	Mode.x=0;
-	Mode.y=0;
-	Mode.w=w;
-	Mode.h=h;
+	Cleanup();
+	_Window=SDL_SetVideoMode(w, h, 0, SDL_HWSURFACE|SDL_OPENGL|SDL_FULLSCREEN);		// Switch to Fullscreen
+	Reinitialize();
 	
-	for(int i=0;_FSModes[i];i++)
-	{
-		if(_FSModes[i]->w==Mode.w && _FSModes[i]->h==Mode.h)
-		{
-			if((_Window = SDL_SetVideoMode(_FSModes[i]->w, _FSModes[i]->h, 32, SDL_OPENGL | SDL_HWSURFACE | SDL_FULLSCREEN))==NULL)
-			{
-				_Window = SDL_SetVideoMode(_CurrentFSMode->w, _CurrentFSMode->h, 32, SDL_OPENGL | SDL_HWSURFACE | SDL_FULLSCREEN);
-				return;
-			}
-			_CurrentFSMode = _FSModes[i];
-			return;
-		}
-	}
+	return;
 
 	Reinitialize();
 }
@@ -228,20 +210,8 @@ void WindowManager::SetWindowedMode(SDL_Rect Mode)
 
 void WindowManager::SetFullscreenMode(SDL_Rect *Mode)
 {	
-	for(int i=0;_FSModes[i];i++)
-	{
-		if(_FSModes[i]==Mode)
-		{
-			if((_Window = SDL_SetVideoMode(Mode->w, Mode->h, 0, SDL_OPENGL | SDL_HWSURFACE | SDL_FULLSCREEN))==NULL)
-			{
-				_Window = SDL_SetVideoMode(_CurrentFSMode->w, _CurrentFSMode->h, 0, SDL_OPENGL | SDL_HWSURFACE | SDL_FULLSCREEN);
-				return;
-			}
-			_CurrentFSMode = _FSModes[i];
-			return;
-		}
-	}
-
+	Cleanup();
+	_Window=SDL_SetVideoMode(Mode->w, Mode->h, 0, SDL_HWSURFACE|SDL_OPENGL|SDL_FULLSCREEN);		// Switch to Fullscreen
 	Reinitialize();
 }
 
@@ -278,5 +248,36 @@ void WindowManager::Reinitialize()
 	InitOpenGL();
 	TM->ReloadTextures();
 	GetRenderer()->ReinitializeAll();
-	Game::SetActiveState(true);
+	_Active=true;
+}
+
+SDL_Rect **WindowManager::GetAvailableModes()
+{
+	return _FSModes;
+}
+
+int WindowManager::GetNumAvailableModes()
+{
+	int i=0;
+	char buf[255] = {0};
+	while(_FSModes[i])
+	{
+		i++;
+	}
+	return i;
+}
+
+bool WindowManager::IsActive()
+{
+	return _Active;
+}
+
+bool WindowManager::IsRunning()
+{
+	return _Running;
+}
+
+void WindowManager::Quit()
+{
+	_Running = false;
 }

@@ -1,4 +1,5 @@
 #include "..\include\SceneManager.h"
+#include "..\include\Error.h"
 
 SceneManager::SceneManager(void)
 {
@@ -31,14 +32,14 @@ void SceneManager::InitAll()
 	}
 }
 
-void SceneManager::NewScene(char *name)
+void SceneManager::NewHUDElement(char *name)
 {
 	Scene *newscene = new Scene(name);
 	_Scenes.push_back(newscene);
 	_CurrScene = _Scenes[_Scenes.size()-1];
 }
 
-void SceneManager::AddScene(Scene *scene)
+void SceneManager::AddElement(Scene *scene)
 {
 	_Scenes.push_back(scene);
 	_CurrScene = _Scenes[_Scenes.size()-1];
@@ -71,6 +72,9 @@ Scene *SceneManager::GetSceneByName(char *name)
 			return _Scenes[i];
 		}
 	}
+	char buf[255] = {0};
+	sprintf(buf, "Could not find Scene '%s'!",name);
+	Error->NewError(buf);
 	return _CurrScene;
 }
 
@@ -84,13 +88,26 @@ Scene *SceneManager::GetCurrentScene()
 	return _CurrScene;
 }
 
-void SceneManager::RenderScene()
+void SceneManager::RenderElement()
 {
 	_CurrScene->Render();
 }
 
-void SceneManager::RenderScene(char *name)
+void SceneManager::RenderElement(char *name)
 {
 	Scene *scene = GetSceneByName(name);
 	scene->Render();
+}
+
+
+void SceneManager::RemoveElement(char *name)
+{
+	for(unsigned int i=0;i<_Scenes.size();i++)
+	{
+		if(_Scenes[i]->GetName() == name)
+		{
+			delete _Scenes[i];
+			_Scenes.erase(_Scenes.begin()+i);
+		}
+	}
 }

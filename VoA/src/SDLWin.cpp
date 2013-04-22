@@ -4,11 +4,14 @@
 #include "../include/Font.h"
 #include <glm/gtx/transform.hpp>
 #include "../include/Game.h"
+#include "../include/OptionsMenu.h"
 #include "../include/Error.h"
 /****************************************************
 *	Name: SDLWin()									*
 *	Description: Constructor.						*
 ****************************************************/
+
+GameManager *Game;
 
 SDLWin::SDLWin()
 {
@@ -19,6 +22,7 @@ SDLWin::SDLWin()
 	_blurY = 1.0f/128.0f;
 	_blurXinc = _blurYinc = false;
 	_mouseX = _mouseY = 0;
+	Game = new GameManager();
 }
 
 /****************************************************
@@ -51,32 +55,37 @@ void SDLWin::Render()
 	GMat->UpdateShader();
 	To2D();
 	
-	if(Game::GetCurrentMode()==GM_PLAY)
+	if(Game->GetCurrentMode()==GM_PLAY)
 	{
-		SM->RenderScene("Main");		// Render ship and exhaust
+		glActiveTexture(GL_TEXTURE0);
+		TM->BindTexture("Background");
+		glActiveTexture(GL_TEXTURE1);
+		TM->BindTexture("White");
+		Plane::Render(0,0,width, height);
+		SM->RenderElement("Main");												// Render ship and exhaust
+
 	}
 	
-	if(Game::GetCurrentMode()==GM_MAINMENU)
+	if(Game->GetCurrentMode()==GM_MAINMENU || Game->GetCurrentMode() == GM_OPTIONSMENU)
 	{
 		glm::mat4 tmp = glm::mat4(1.0f);
 		GMat->ModelMatrix()->UpdateShader("modelMat");
 	
 		glActiveTexture(GL_TEXTURE0);
-		TM->BindTexture("Particle2");
-		shader->SetUniformValue("tex",0);
+		TM->BindTexture("White");
 
 		glActiveTexture(GL_TEXTURE1);
-		TM->BindTexture("Particle2Alpha");
-		shader->SetUniformValue("alpha",1);
+		TM->BindTexture("White");
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-		WM->GetRenderer()->BindFramebuffer();
+
+		/*WM->GetRenderer()->BindFramebuffer();
 		GMat->ModelMatrix()->LoadIdentity();
 		GMat->UpdateShader();
 		glViewport(0, 0, width, height);
 		glClearColor(0.0f,0.0f,0.0f,0.0f);
-		glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		SM->RenderScene("About");
-		WM->GetRenderer()->UnbindFramebuffer();
+		glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);*/
+		SM->RenderElement("Main Menu");
+		//WM->GetRenderer()->UnbindFramebuffer();
 
 		GMat->ModelMatrix()->Translate(0,0,0);
 		GMat->UpdateShader();
@@ -85,23 +94,23 @@ void SDLWin::Render()
 		char buf[512] = {0};
 		Color col(255,255,255);
 		sprintf_s(buf,"X: %d",_mouseX);
-		Font::Render(buf,"fonts/arial rounded.ttf",col,24);
+		Font::Render(buf,"arial rounded",col,24);
 		GMat->ModelMatrix()->Translate(0.0f,20.0f,0.0f);
 		GMat->ModelMatrix()->UpdateShader("modelMat");
 		sprintf_s(buf, "Y: %d",_mouseY);
-		Font::Render(buf,"fonts/arial rounded.ttf",col,24);*/
+		Font::Render(buf,"arial rounded",col,24);*/
 
-		glActiveTexture(GL_TEXTURE0);
+		/*glActiveTexture(GL_TEXTURE0);
 		WM->GetRenderer()->BindFramebufferTexture();
 		glActiveTexture(GL_TEXTURE1);
 		TM->BindTexture("White");
-		shader->SetUniformValue("alpha",1);
 		To2D();
 		GMat->ViewMatrix()->LoadIdentity();
 		GMat->ModelMatrix()->PushMatrix();
 		GMat->UpdateShader();
+		Plane::RenderInverted(0,0,(float)width,(float)height);*/
 
-		RenderPostProcessing();
+		//RenderPostProcessing();
 
 		GMat->ModelMatrix()->PopMatrix();
 		GMat->UpdateShader();
@@ -110,11 +119,9 @@ void SDLWin::Render()
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glActiveTexture(GL_TEXTURE0);
 		TM->BindTexture("MousePointer");
-		shader->SetUniformValue("tex",0);
 	
 		glActiveTexture(GL_TEXTURE1);
 		TM->BindTexture("MousePointerAlpha");
-		shader->SetUniformValue("alpha",1);
 
 		Plane::Render((float)_mouseX,(float)_mouseY,50.0f,50.0f);*/
 
@@ -122,24 +129,19 @@ void SDLWin::Render()
 	
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 	}
-	
+
 	glActiveTexture(GL_TEXTURE0);
 	TM->BindTexture("White");
-	shader->SetUniformValue("tex",0);
 
 	glActiveTexture(GL_TEXTURE1);
 	TM->BindTexture("White");
-	shader->SetUniformValue("alpha",1);
 
-	char bu[255];
-	if(WM->IsFullscreen())
-		sprintf_s(bu, "Fullscreen: True");
-	else
-	{
-		sprintf_s(bu, "Fullscreen: False");
-	}
-
-	Error::Print(bu);
+	glColor3f(1.0f,0.0f,0.0f);
+	GMat->ModelMatrix()->Translate(250.0f,0,0);
+	GMat->UpdateShader();
+	Error->PrintErrors();
+	GMat->ModelMatrix()->PopMatrix();
+	glColor3f(1.0f,1.0f,1.0f);
 
 	ModeDisplay();
 	SDL_GL_SwapBuffers();		//Swap buffers
@@ -174,33 +176,30 @@ void SDLWin::Events(SDL_Event *event)
 
 int SDLWin::Run()
 {
-	Game game;
-	if(WM->CreateSDLWindow() && WM->InitOpenGL())					// Initialize SDL
-		Game::Run();				// If SDL initialization is successful, set the 'Running' variable for the main loop to start
-	Game::SwitchMode(GM_PLAY);
-	GMat->ProjectionMatrix()->SetupOrthProject();
-	InitGeometry();
-	InitTextures();
-	WM->GetRenderer()->Init();
-	To2D();
+	WM->CreateSDLWindow() && WM->InitOpenGL();					// Initialize SDL and OpenGL
+	Game->Pause();												// Switch to Menu Mode
+	WM->GetRenderer()->Init();									// Initialize Renderer
+	InitGeometry();												// Create Menus
+	InitTextures();												// Initialize Menu Textures
+	WM->GetRenderer()->To2D();									// Switch to 2D Rendering
 
-    SDL_Event Event;				// Create an event variable for catching events that SDL sends
-    while(Game::IsRunning())					// Main Loop starts here
+    SDL_Event Event;											// Create an event variable for catching events that SDL sends
+    while(WM->IsRunning())									// Main Loop starts here
     {
         if(SDL_PollEvent(&Event)) {
-            Events(&Event);			// Send Events to the 'Events' function for processing
+            Events(&Event);				// Send Events to the 'Events' function for processing
         }
-		if(Game::IsActive())
+		if(WM->IsActive())
 		{
 			Loop();						// Game loop processing
 			Render();					// Draw to the screen
 			_CrtCheckMemory( );
 		}
-		SDL_Delay(TimeLeft());		// Limit the frame rate
+		SDL_Delay(TimeLeft());			// Limit the frame rate
     }
 
-    //Cleanup();						// Once everything is done, make sure to clean up all loose ends
-    return 1;						// Return 1 so that we know everything went fine
+    Cleanup();							// Once everything is done, make sure to clean up all loose ends
+    return 1;							// Return 1 so that we know everything went fine
 }
 
 /****************************************************
@@ -211,7 +210,7 @@ int SDLWin::Run()
 
 void SDLWin::Cleanup()
 {
-	if(Game::GetCurrentMode()==GM_QUIT)
+	if(Game->GetCurrentMode()==GM_QUIT)
 	{
 		SDL_Quit();														// Close Out
 	}
@@ -273,35 +272,6 @@ void SDLWin::InitTextures()
 
 void SDLWin::InitGeometry()
 {
-	Entity *ent = new Entity("player");
-	Ship *ship = new Ship(1.0f,"player_ship");
-	float size = ship->GetSize();
-	float width = ship->GetBoundingBox().x;
-	float newWidth = width*size;
-	ship->Init();
-	ParticleSystem *lEngine = new ParticleSystem("LEngine");
-	ParticleSystem *rEngine = new ParticleSystem("REngine");
-
-	//lEngine->SetPositionMat(glm::translate(glm::mat4(1.0f),glm::vec3(-newWidth,-10.0,0.0)));
-	TM->AddTexture("images/particle1.jpg","Particle1");
-	TM->AddTexture("images/particle1_alpha.jpg","Particle1_Alpha");
-	lEngine->Setup(1.0f, 7.0f, 400, 1.15f);
-	lEngine->SetStrength(12.0f);
-	//rEngine->SetPositionMat(glm::translate(glm::mat4(1.0f),glm::vec3(newWidth,-10.0,0.0)));
-    rEngine->Setup(1.0f, 7.0f, 400, 1.15f);
-	rEngine->SetStrength(12.0f);
-
-	ent->AddMesh(lEngine);
-	ent->AddMesh(rEngine);
-	ent->AddMesh(ship);
-
-	SM->NewScene("Main");
-	SM->GetCurrentScene()->AddEntity(ent);
-	SM->GetCurrentScene()->Init();
-
-	About *about = new About("About");
-	SM->AddScene(about);
-	SM->GetCurrentScene()->Init();
 }
 
 
@@ -346,9 +316,8 @@ void SDLWin::RenderPostProcessing()
 	WM->GetRenderer()->BindFramebufferTexture();
 	glActiveTexture(GL_TEXTURE1);
 	TM->BindTexture("White");
-    shader->SetUniformValue("alpha",1);
 	GMat->UpdateShader();
-	Plane::RenderInverted(0,0,(float)width,(float)width);
+	Plane::RenderInverted(0,0,(float)width,(float)height);
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 
 	// Apply Vertical Blur
@@ -359,7 +328,6 @@ void SDLWin::RenderPostProcessing()
 	WM->GetRenderer()->BindFramebufferTexture();
 	glActiveTexture(GL_TEXTURE1);
 	TM->BindTexture("White");
-    shader->SetUniformValue("alpha",1);
 	GMat->UpdateShader();
 	Plane::RenderInverted(0,0,(float)width,(float)height);
 
@@ -376,9 +344,11 @@ void SDLWin::ModeDisplay()
 	TM->BindTexture("White");
 
 	char buf[255] = {0};
-	if(Game::GetCurrentMode() == GM_MAINMENU)
+	if(Game->GetCurrentMode() == GM_MAINMENU)
 		sprintf_s(buf, "Game Mode: Main Menu");
+	else if(Game->GetCurrentMode() == GM_OPTIONSMENU)
+		sprintf_s(buf, "Game Mode: Options Menu");
 	else
 		sprintf_s(buf, "Game Mode: Play");
-	Font::Render(buf,"fonts/arial rounded.ttf",Color(255,255,255,160),24);
+	Font::Render(buf,"arial rounded",Color(255,255,255,160),24);
 }

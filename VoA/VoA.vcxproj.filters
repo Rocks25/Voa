@@ -33,12 +33,6 @@
     <ClCompile Include="src\ship.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\About.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\MainMenu.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Font.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -96,6 +90,12 @@
     <ClCompile Include="src\Matrix.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\MainMenu.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\OptionsMenu.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\GLShader.h">
@@ -119,13 +119,7 @@
     <ClInclude Include="include\types.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\About.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\Font.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\MainMenu.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\BasicObject.h">
@@ -192,6 +186,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Matrix.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\MainMenu.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\OptionsMenu.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

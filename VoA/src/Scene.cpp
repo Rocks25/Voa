@@ -1,4 +1,5 @@
 #include "..\include\Scene.h"
+#include "..\include\Error.h"
 
 
 Scene::Scene(char *name)
@@ -57,6 +58,12 @@ Entity *Scene::GetEntityByName(const char *name)
 	{
 		if(_Entities[i]->GetName() == name)
 			ent = _Entities[i];
+	}
+	if(ent==0)
+	{
+		char buf[255] = {0};
+		sprintf(buf, "Could not find entity '%s'!",name);
+		Error->NewError(buf);
 	}
 	return ent;
 }

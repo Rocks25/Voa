@@ -18,13 +18,13 @@ public:
     glm::vec3 GetPosition();
     glm::vec3 GetDirection();
     glm::vec3 GetRotation();
-    void SetPosition(glm::vec3 pos);
-    void SetDirection(glm::vec3 dir);
-    void SetRotation(glm::vec3 rot);
-	void SetScale(glm::vec3 scale);
-	void Translate(glm::vec3 pos);
-	void Rotate(glm::vec3 rot);
-	void Scale(glm::vec3 scale);
+    virtual void SetPosition(glm::vec3 pos);
+    virtual void SetDirection(glm::vec3 dir);
+    virtual void SetRotation(glm::vec3 rot);
+	virtual void SetScale(glm::vec3 scale);
+	virtual void Translate(glm::vec3 pos);
+	virtual void Rotate(glm::vec3 rot);
+	virtual void Scale(glm::vec3 scale);
 
 protected:
 	const char *_Name;

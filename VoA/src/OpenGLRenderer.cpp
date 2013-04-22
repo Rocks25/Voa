@@ -33,7 +33,7 @@ void OpenGLRenderer::Render()
 
 void OpenGLRenderer::Init()
 {
-	InitFramebuffer();
+	//InitFramebuffer();
 	InitShaders();
 }
 
@@ -78,6 +78,7 @@ void OpenGLRenderer::InitFramebuffer()
 		return;
 	}
 	//IsGLErrors("Framebuffer Init");
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 
@@ -204,7 +205,7 @@ void OpenGLRenderer::BindFramebufferTexture()
 void OpenGLRenderer::ReinitializeAll()
 {
 	_sPrograms.clear();
-	glDeleteTextures(1, &fbo_texture);
+	//glDeleteTextures(1, &fbo_texture);
 	InitShaders();
 	InitFramebuffer();
 }

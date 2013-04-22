@@ -6,6 +6,7 @@
 
 PlayerController::PlayerController(void)
 {
+	memset(keys, 0,sizeof(keys));
 }
 
 
@@ -15,11 +16,11 @@ PlayerController::~PlayerController(void)
 
 void PlayerController::ProcessKeyboardEvent(SDL_Event *event)
 {
-	Entity *ent = SM->GetSceneByName("Main")->GetEntityByName("player");
+	Entity *ent = SM->GetSceneByName("Main")->GetEntityByName("Player");
 	SM->BindScene("Main");
-	Ship *ship = (Ship *)SM->GetCurrentScene()->GetEntityByName("player")->GetMeshByName("player_ship");
-	ParticleSystem *lEngine = (ParticleSystem *)SM->GetCurrentScene()->GetEntityByName("player")->GetMeshByName("LEngine");
-	ParticleSystem *rEngine = (ParticleSystem *)SM->GetCurrentScene()->GetEntityByName("player")->GetMeshByName("REngine");
+	Ship *ship = (Ship *)SM->GetCurrentScene()->GetEntityByName("Player")->GetMeshByName("Player Ship");
+	ParticleSystem *lEngine = (ParticleSystem *)SM->GetCurrentScene()->GetEntityByName("Player")->GetMeshByName("LEngine");
+	ParticleSystem *rEngine = (ParticleSystem *)SM->GetCurrentScene()->GetEntityByName("Player")->GetMeshByName("REngine");
 	if(!ship || !lEngine || !rEngine)
 		return;
 	float rotSpeed=10.0f;
@@ -33,20 +34,14 @@ void PlayerController::ProcessKeyboardEvent(SDL_Event *event)
 		switch(event->key.keysym.sym)
 		{
 		case SDLK_ESCAPE:
-				Game::SwitchMode(GM_MAINMENU);
+				Game->Pause();
+				Game->SwitchMode(GM_MAINMENU);
 			break;
 		case 'm':
 			if(WM->IsMouseGrabbed())
 				WM->ReleaseMouse();
 			else
 				WM->GrabMouse();
-			break;
-		case 'q':
-			Game::Quit();				// End main loop
-			Game::SwitchMode(SDL_QUIT);
-			break;
-		case 'f':				// If 'f' key was pressed
-			WM->ToggleFullscreen();
 			break;
 		default:
 			keys[event->key.keysym.sym] = true;
@@ -59,57 +54,62 @@ void PlayerController::ProcessKeyboardEvent(SDL_Event *event)
 
 void PlayerController::ProcessKeyboardControls()
 {
-	Entity *ent = SM->GetSceneByName("Main")->GetEntityByName("player");
-	SM->BindScene("Main");
-	Ship *ship = (Ship *)SM->GetCurrentScene()->GetEntityByName("player")->GetMeshByName("player_ship");
-	ParticleSystem *lEngine = (ParticleSystem *)SM->GetCurrentScene()->GetEntityByName("player")->GetMeshByName("LEngine");
-	ParticleSystem *rEngine = (ParticleSystem *)SM->GetCurrentScene()->GetEntityByName("player")->GetMeshByName("REngine");
-	if(!ship || !lEngine || !rEngine)
-		return;
-	float rotSpeed=10.0f;
-	float vel = ship->GetThrottle();
-
-	if(keys[SDLK_RIGHT]) // If the right arrow key is pressed
+	if(Game->GetCurrentMode() == GM_PLAY)
 	{
-		ship->SetRotation(glm::vec3(0.0f,0.0f,+rotSpeed));			// Rotate the ship clockwise
-		lEngine->SetRotation(lEngine->GetRotation()-glm::vec3(0.0f,0.0f,rotSpeed));			// Rotate the ship clockwise
-		rEngine->SetRotation(rEngine->GetRotation()-glm::vec3(0.0f,0.0f,rotSpeed));			// Rotate the ship clockwise
-	}
+		Entity *ent = SM->GetSceneByName("Main")->GetEntityByName("Player");
+		SM->BindScene("Main");
+		Ship *ship = (Ship *)SM->GetCurrentScene()->GetEntityByName("Player")->GetMeshByName("Player Ship");
+		float rotSpeed=10.0f;
+		float vel = ship->GetThrottle();
 	
-	if(keys[SDLK_LEFT]) // If the right arrow key is pressed
-	{
-		ship->SetRotation(glm::vec3(0.0f,0.0f,-rotSpeed));									// Rotate the ship clockwise
-		lEngine->SetRotation(lEngine->GetRotation()-glm::vec3(0.0f,0.0f,rotSpeed));			// Rotate the ship clockwise
-		rEngine->SetRotation(rEngine->GetRotation()-glm::vec3(0.0f,0.0f,rotSpeed));			// Rotate the ship clockwise
-	}
-
-	if(keys[SDLK_UP])
-	{
-		if(vel <= 1.75f)	// If the throttle is less than max
+		if(keys[SDLK_RIGHT]) // If the right arrow key is pressed
 		{
-			ship->SetThrottle(vel+.1f);								// Increase the throttle
-			lEngine->SetStrength((vel+.1f)*(-35));
-			rEngine->SetStrength((vel+.1f)*(-35));
+			ship->SetRotation(glm::vec3(0.0f,0.0f,+rotSpeed));			// Rotate the ship clockwise
+			//lEngine->SetRotation(lEngine->GetRotation()-glm::vec3(0.0f,0.0f,rotSpeed));			// Rotate the ship clockwise
+			//rEngine->SetRotation(rEngine->GetRotation()-glm::vec3(0.0f,0.0f,rotSpeed));			// Rotate the ship clockwise
 		}
-		// TODO: Add functionality for moving the ship around
-	}
-	else
-	{
-		// While the up key is not pressed
-		if(vel > 0.0f)		// Make sure that there is a throttle
+	
+		if(keys[SDLK_LEFT]) // If the right arrow key is pressed
 		{
-			if(vel < 0.1)	// If the throttle is close to zero
+			ship->SetRotation(glm::vec3(0.0f,0.0f,-rotSpeed));									// Rotate the ship clockwise
+			//lEngine->SetRotation(lEngine->GetRotation()-glm::vec3(0.0f,0.0f,rotSpeed));			// Rotate the ship clockwise
+			//rEngine->SetRotation(rEngine->GetRotation()-glm::vec3(0.0f,0.0f,rotSpeed));			// Rotate the ship clockwise
+		}
+
+		if(keys[SDLK_UP])
+		{
+			if(vel <= 1.75f)	// If the throttle is less than max
 			{
-				ship->SetThrottle(0);								// Go ahead and set it to zero (no need to waste fuel)
-				lEngine->SetStrength(0);
-				rEngine->SetStrength(0);
+				ship->SetThrottle(vel+.1f);								// Increase the throttle
+				//lEngine->SetStrength((vel+.1f)*(-35));
+				//rEngine->SetStrength((vel+.1f)*(-35));
 			}
-			else
+			char buf[255]={0};
+			sprintf(buf, "Velocity: %f",vel);
+			Error->NewError(buf);
+			// TODO: Add functionality for moving the ship around
+		}
+		else
+		{
+			// While the up key is not pressed
+			if(vel > 0.0f)		// Make sure that there is a throttle
 			{
-				ship->SetThrottle(vel-0.05f);						// Decrease throttle
-				lEngine->SetStrength(vel-0.05f);
-				rEngine->SetStrength(vel-0.05f);
+				if(vel < 0.1)	// If the throttle is close to zero
+				{
+					ship->SetThrottle(0);								// Go ahead and set it to zero (no need to waste fuel)
+					//lEngine->SetStrength(0);
+					//rEngine->SetStrength(0);
+				}
+				else
+				{
+					ship->SetThrottle(vel-0.05f);						// Decrease throttle
+					//lEngine->SetStrength(vel-0.05f);
+					//rEngine->SetStrength(vel-0.05f);
+				}
 			}
+			char buf[255]={0};
+			sprintf(buf, "Velocity: %f\tDirection: %f",vel,ship->GetDirection());
+			Error->NewError(buf);
 		}
 	}
 }

@@ -30,6 +30,7 @@ public:
 	TextureInfo GetTextureinfo(char *name);
 	bool BindTexture(char *name);
 	void ReloadTextures();
+	bool TextureExists(char *name);
 };
 
 extern TextureManager *TM;

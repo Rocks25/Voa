@@ -13,26 +13,26 @@
 #include "OpenGLRenderer.h"
 #include "MenuController.h"
 #include "PlayerController.h"
+#include "Error.h"
 #include "GlobalMatrices.h"
 
-class Game
+class GameManager
 {
 private:
-	static bool _Running;
-	static bool _Active;
-
-	static int _Mode;
+	bool _Running;
+	int _Mode;
+	bool _GameStatus;
 public:
-	Game(void);
-	~Game(void);
-	static int GetCurrentMode();
-	static void SwitchMode(int mode);
-	static void ProcessKeyboardEvent(SDL_Event *event);
-	static void Quit();
-	static void Run();
-	static void Render();
-	static bool IsRunning();
-	static bool IsActive();
-	static void SetActiveState(bool state);
+	GameManager(void);
+	~GameManager(void);
+	int GetCurrentMode();
+	void SwitchMode(int mode);
+	void ProcessKeyboardEvent(SDL_Event *event);
+	void Run();
+	void Render();
+	void Pause();
+	void StartNewGame();
+	bool HasGameStarted();
 };
 
+extern GameManager *Game;

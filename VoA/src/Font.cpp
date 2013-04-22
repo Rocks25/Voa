@@ -9,9 +9,13 @@ Font::Font()
 Font::~Font()
 {
 }
-void Font::Render(const char *text,const char *fontpath, Color color, int ptsize)
+void Font::Render(char *text,const char *fontpath, Color color, int ptsize)
 {
-	TTF_Font *font = TTF_OpenFont(fontpath,ptsize);
+	char buf[255] = {0};
+	strcpy(buf,"fonts/");
+	strcat(buf,fontpath);
+	strcat(buf,".ttf");
+	TTF_Font *font = TTF_OpenFont(buf,ptsize);
 	if(!font)
 	{
 		char buf[512];

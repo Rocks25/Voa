@@ -10,7 +10,7 @@ class Font
 public:
 	Font();
 	~Font();
-	static void Render(const char *text,const char *font, Color color,int ptsize);
+	static void Render(char *text,const char *font="arial rounded", Color color=Color(255,255,255,255),int ptsize=32);
 private:
 	static int NextPowerOfTwo(int x);
 	static int Round(double x);

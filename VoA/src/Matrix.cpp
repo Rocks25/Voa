@@ -48,6 +48,8 @@ glm::mat4 *Matrix::GetCurrentMatrix()
 
 glm::mat4 Matrix::PopMatrix()
 {
+	if(_Stack.size() == 0)
+		return glm::mat4();
 	glm::mat4 mat = _CurrMatrix;
 	_CurrMatrix = _Stack[_Stack.size()-1];
 	_Stack.pop_back();
