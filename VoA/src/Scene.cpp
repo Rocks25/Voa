@@ -63,7 +63,7 @@ Entity *Scene::GetEntityByName(const char *name)
 	{
 		char buf[255] = {0};
 		sprintf(buf, "Could not find entity '%s'!",name);
-		Error->NewError(buf);
+		//Error->NewError(buf);
 	}
 	return ent;
 }

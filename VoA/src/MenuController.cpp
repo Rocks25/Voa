@@ -59,16 +59,19 @@ void MenuController::ProcessMainMenu(SDL_Event *event)
 					SM->RemoveElement("Main Menu");
 					SM->RemoveElement("Options Menu");
 					Game->SwitchMode(GM_PLAY);			// Back to Game
+					menu->StopMusic();
 				}
 				else if(selected==1)
 				{
 					SM->RemoveElement("Main Menu");
 					SM->RemoveElement("Options Menu");
 					Game->StartNewGame();				// Start a new Game
+					menu->StopMusic();
 				}
 				else if(selected==2)
 				{
 					Game->SwitchMode(GM_OPTIONSMENU);	// Go to Options Menu
+					menu->SetSelection(0);
 				}
 				else
 				{
@@ -82,13 +85,16 @@ void MenuController::ProcessMainMenu(SDL_Event *event)
 					SM->RemoveElement("Main Menu");
 					SM->RemoveElement("Options Menu");
 					Game->StartNewGame();			// Back to Game
+					menu->StopMusic();
 				}
 				else if(selected==1)
 				{
 					Game->SwitchMode(GM_OPTIONSMENU);	// Go to Options Menu
+					menu->SetSelection(0);
 				}
 				else
 				{
+					menu->StopMusic();
 					WM->Quit();							// End main loop
 				}
 			}
@@ -116,7 +122,11 @@ void MenuController::ProcessOptionsMenu(SDL_Event *event)
 		switch(event->key.keysym.sym)
         {
 		case SDLK_ESCAPE:
-			Game->SwitchMode(GM_PLAY);
+			Game->SwitchMode(GM_MAINMENU);
+			if(Game->HasGameStarted())
+				menu->SetSelection(2);
+			else
+				menu->SetSelection(1);
 			break;
 		case 'm':
 			if(WM->IsMouseGrabbed())
@@ -155,6 +165,10 @@ void MenuController::ProcessOptionsMenu(SDL_Event *event)
 			else
 			{
 				Game->SwitchMode(GM_MAINMENU);
+				if(Game->HasGameStarted())
+					menu->SetSelection(2);
+				else
+					menu->SetSelection(1);
 			}
 			break;
         default:

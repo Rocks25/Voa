@@ -47,8 +47,11 @@ void WindowManager::ProcessEvent(SDL_Event *event)
 		break;
 		// When user quits the game
 	case SDL_VIDEOEXPOSE:
-		mainmenu->Resize();
-		optionsmenu->Resize();
+		if(Game->GetCurrentMode() != GM_PLAY)
+		{
+			mainmenu->Resize();
+			optionsmenu->Resize();
+		}
 		break;
     case SDL_QUIT:
 		_Running=false;
@@ -75,6 +78,11 @@ bool WindowManager::CreateSDLWindow()
 
 	TTF_Init();
 
+	if( Mix_OpenAudio( 22050, MIX_DEFAULT_FORMAT, 2, 4096 ) == -1 )
+	{
+		return false;
+	}
+
 	_FSModes = SDL_ListModes(NULL, SDL_OPENGL | SDL_HWSURFACE | SDL_FULLSCREEN);
 	if(_FSModes == (SDL_Rect**)0 || _FSModes == (SDL_Rect **)-1)
 		return false;
@@ -93,6 +101,8 @@ bool WindowManager::CreateSDLWindow()
 		_CurrentWMode = Mode;
 		_Window=SDL_SetVideoMode(_CurrentWMode.w, _CurrentWMode.h, 0, SDL_HWSURFACE | SDL_OPENGL);
 	}
+
+	SDL_WM_SetCaption( "VoA: Variations on Asteroids", NULL );
 
 	GrabMouse();
 
@@ -194,11 +204,10 @@ void WindowManager::SetFullscreenMode(int w, int h)
 {
 	Cleanup();
 	_Window=SDL_SetVideoMode(w, h, 0, SDL_HWSURFACE|SDL_OPENGL|SDL_FULLSCREEN);		// Switch to Fullscreen
+	_Fullscreen=true;
 	Reinitialize();
 	
 	return;
-
-	Reinitialize();
 }
 
 void WindowManager::SetWindowedMode(SDL_Rect Mode)
@@ -212,6 +221,7 @@ void WindowManager::SetFullscreenMode(SDL_Rect *Mode)
 {	
 	Cleanup();
 	_Window=SDL_SetVideoMode(Mode->w, Mode->h, 0, SDL_HWSURFACE|SDL_OPENGL|SDL_FULLSCREEN);		// Switch to Fullscreen
+	_Fullscreen=true;
 	Reinitialize();
 }
 

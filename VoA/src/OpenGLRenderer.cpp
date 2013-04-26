@@ -133,6 +133,16 @@ void OpenGLRenderer::InitShaders()
 	glUniform1f(glGetUniformLocation(shader->GetProgramID(),"blur"),0);
 
 	GMat->UpdateShader();
+	
+	NewShaderProgram("Text");
+	shader = GetShaderProgramByName("Text");
+	shader->NewFragmentShader("shaders/text.frag");			// Attach the vertex shader to the main program
+	shader->NewVertexShader("shaders/main.vert");			// Attache the fragment shader to the main program
+	shader->Link();											// Link the shader program
+	BindShaderProgram("Text");
+	IsGLErrors("Shader Init");
+
+	GMat->UpdateShader();
 
 	IsGLErrors("Shader Init");
 }

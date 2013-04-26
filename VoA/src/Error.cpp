@@ -32,7 +32,6 @@ void Errors::PrintErrors()
 {
 	if(messages.size()<=0)
 		return;
-	TM->BindTexture("White");
 	GMat->ModelMatrix()->PushMatrix();
 	GMat->ModelMatrix()->Translate(WM->GetWindowWidth()/2.0f,0.0f,0.0f);
 	GMat->UpdateShader();

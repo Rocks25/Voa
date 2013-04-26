@@ -55,6 +55,7 @@ void MainMenu::Init()
 	a1rot=rand()%100/100.0f*180;
 	a2rot=rand()%100/100.0f*180;
 	InitTextures();
+	InitAudio();
 }
 
 void MainMenu::Render()
@@ -212,6 +213,25 @@ void MainMenu::Resize()
 	objects.push_back(p3);
 }
 
+void MainMenu::StartMusic()
+{
+}
+
+void MainMenu::StopMusic()
+{
+	Mix_FadeOutMusic(2000);
+}
+
+void MainMenu::PauseMusic()
+{
+}
+
+void MainMenu::InitAudio()
+{
+	_sMusic = Mix_LoadMUS( "Audio/Music/Groove_Grove.ogg" );
+	Mix_FadeInMusic(_sMusic,-1,2000);
+}
+
 void MainMenu::InitTextures()
 {
     TM->AddTexture("images/Rocks/Rock1.jpg", "Rock1");
@@ -250,14 +270,38 @@ void MainMenu::SelectNext()
 		}
 		else
 		{
-			if(selection > 2)
-				selection = 0;
+			if(WM->IsFullscreen())
+			{
+				if(selection > 2)
+					selection = 0;
+			}
+			else
+			{
+				if(selection > 2)
+					selection = 0;
+				if(selection == 1)
+					selection = 2;
+			}
 		}
 	}
 	else
 	{
-		if(selection > 2)
-			selection = 0;
+		if(Game->GetCurrentMode() == GM_OPTIONSMENU)
+		{
+			if(selection > 2)
+				selection = 0;
+
+			if(!WM->IsFullscreen())
+			{
+				if(selection == 1)
+					selection = 2;
+			}
+		}
+		else
+		{
+			if(selection > 2)
+				selection = 0;
+		}
 	}
 }
 
@@ -273,14 +317,26 @@ void MainMenu::SelectPrev()
 		}
 		else
 		{
-			if(selection > 2)
-				selection = 0;
+			if(selection < 0)
+				selection = 2;
+
+			if(!WM->IsFullscreen())
+			{
+				if(selection == 1)
+					selection = 0;
+			}
 		}
 	}
 	else
 	{
 		if(selection < 0)
 			selection = 2;
+
+		if(!WM->IsFullscreen())
+		{
+			if(selection == 1)
+				selection = 0;
+		}
 	}
 }
 
@@ -312,7 +368,7 @@ void MainMenu::RenderMainMenu()
 {
 	int width = WM->GetWindowWidth();
 	int height = WM->GetWindowHeight();
-	Color col(255,255,255);
+	Color col(255,255,255,255);
 	int size = (int)(48/800.0f*height);
 	char *font = "Text/simplicity";
 	if(!Game->HasGameStarted())
@@ -370,7 +426,7 @@ void MainMenu::RenderMainMenu()
 	GMat->ModelMatrix()->LoadIdentity();
 	GMat->ModelMatrix()->Translate(glm::vec3(width/1680.0f*1000,height/1050.0f*(525+100*selection),0));
 	GMat->UpdateShader();
-	Plane::Render(0,0,150/600.0f*width,55/800.0f*height);
+	Plane::Render(0,0,250/600.0f*width,55/800.0f*height);
 }
 
 void MainMenu::RenderOptionsMenu()
@@ -402,11 +458,11 @@ void MainMenu::RenderOptionsMenu()
 	SDL_Rect *tmp = WM->GetAvailableModes()[modeselected];
 	sprintf(buf,"%d x %d",tmp->w,tmp->h);
 	Font::Render(buf, font, col,size);
-	if(!WM->IsFullscreen())
-	{
-		glActiveTexture(GL_TEXTURE0);
-		TM->BindTexture("GreenHD");
-	}
+	
+	glActiveTexture(GL_TEXTURE0);
+    TM->BindTexture("GreenHD");
+	glActiveTexture(GL_TEXTURE1);
+    TM->BindTexture("White");
 
 	GMat->ModelMatrix()->LoadIdentity();
 	GMat->ModelMatrix()->Translate(glm::vec3(width/1680.0f*100,height/1050.0f*725,0));
@@ -420,9 +476,9 @@ void MainMenu::RenderOptionsMenu()
     TM->BindTexture("White");
 
 	GMat->ModelMatrix()->LoadIdentity();
-	GMat->ModelMatrix()->Translate(glm::vec3(width/1680.0f*100,height/1050.0f*(525+100*selection),0));
+	GMat->ModelMatrix()->Translate(glm::vec3(0,height/1050.0f*(525+100*selection),0));
 	GMat->UpdateShader();
-	Plane::Render(0,0,150/600.0f*width,55/800.0f*height);
+	Plane::Render(0,0,250/600.0f*width,55/800.0f*height);
 }
 
 int MainMenu::GetModeIndex()

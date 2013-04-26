@@ -21,7 +21,6 @@ SDLWin::SDLWin()
 	_blurX = 1/64.0f;
 	_blurY = 1.0f/128.0f;
 	_blurXinc = _blurYinc = false;
-	_mouseX = _mouseY = 0;
 	Game = new GameManager();
 }
 
@@ -45,11 +44,9 @@ void SDLWin::Render()
 	int width = WM->GetWindowWidth();
 	int height = WM->GetWindowHeight();
 
-	OpenGLRenderer *renderer = WM->GetRenderer();
-	renderer->BindShaderProgram("Main");										// Bind the main shader program
-	GLShaderProgram *shader = renderer->GetCurrentShader();
+	WM->GetRenderer()->BindShaderProgram("Main");								// Bind the main shader program
 	glColor4f(1.0f,1.0f,1.0f,1.0f);												// Set default color to white
-    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);							// Clear Color and Depth
+    glClear(GL_COLOR_BUFFER_BIT);												// Clear Color and Depth
 
 	GMat->ModelMatrix()->LoadIdentity();
 	GMat->UpdateShader();
@@ -62,7 +59,18 @@ void SDLWin::Render()
 		glActiveTexture(GL_TEXTURE1);
 		TM->BindTexture("White");
 		Plane::Render(0,0,width, height);
-		SM->RenderElement("Main");												// Render ship and exhaust
+		//SM->RenderElement("Main");												// Render Game
+		
+		/*GMat->ModelMatrix()->LoadIdentity();
+
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glActiveTexture(GL_TEXTURE0);
+		TM->BindTexture("MousePointer");
+	
+		glActiveTexture(GL_TEXTURE1);
+		TM->BindTexture("MousePointerAlpha");
+
+		Plane::Render((float)PC->GetMouseX(),(float)PC->GetMouseY(),50.0f,50.0f);*/
 
 	}
 	
@@ -114,58 +122,27 @@ void SDLWin::Render()
 
 		GMat->ModelMatrix()->PopMatrix();
 		GMat->UpdateShader();
-	
-		/*shader->Bind();
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glActiveTexture(GL_TEXTURE0);
-		TM->BindTexture("MousePointer");
-	
-		glActiveTexture(GL_TEXTURE1);
-		TM->BindTexture("MousePointerAlpha");
-
-		Plane::Render((float)_mouseX,(float)_mouseY,50.0f,50.0f);*/
 
 		glEnable(GL_BLEND);
 	
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 	}
 
-	glActiveTexture(GL_TEXTURE0);
-	TM->BindTexture("White");
+	//WM->GetRenderer()->BindShaderProgram("Text");
 
-	glActiveTexture(GL_TEXTURE1);
-	TM->BindTexture("White");
+	//if(Game->IsDebugMode())
+	//{
+	//	glColor4f(1.0f,0.0f,0.0f,1.0f);
+	//	GMat->ModelMatrix()->Translate(250.0f,0,0);
+	//	GMat->UpdateShader();
+	//	//Error->PrintErrors();
+	//	GMat->ModelMatrix()->PopMatrix();
+	//	glColor3f(1.0f,1.0f,1.0f);
 
-	glColor3f(1.0f,0.0f,0.0f);
-	GMat->ModelMatrix()->Translate(250.0f,0,0);
-	GMat->UpdateShader();
-	Error->PrintErrors();
-	GMat->ModelMatrix()->PopMatrix();
-	glColor3f(1.0f,1.0f,1.0f);
-
-	ModeDisplay();
-	SDL_GL_SwapBuffers();		//Swap buffers
+	//	ModeDisplay();
+	//}
 	//IsGLErrors("Render()");
-}
-
-/****************************************************
-*	Name: Events()									*
-*	Description: Handles all of the window events.	*
-****************************************************/
-
-void SDLWin::Events(SDL_Event *event)
-{
-    switch(event->type)					// See which event it is
-    {
-	case SDL_MOUSEMOTION:
-	{
-		_mouseX = event->motion.x;
-		_mouseY = event->motion.y;
-	}
-    default:
-		GEM->ProcessEvent(event);
-        break;
-	}
+	SDL_GL_SwapBuffers();		//Swap buffers
 }
 
 /****************************************************
@@ -187,7 +164,7 @@ int SDLWin::Run()
     while(WM->IsRunning())									// Main Loop starts here
     {
         if(SDL_PollEvent(&Event)) {
-            Events(&Event);				// Send Events to the 'Events' function for processing
+			GEM->ProcessEvent(&Event);				// Send Events to the 'Events' function for processing
         }
 		if(WM->IsActive())
 		{
@@ -224,7 +201,7 @@ void SDLWin::Cleanup()
 
 void SDLWin::Loop()
 {
-	PC->ProcessKeyboardControls();
+	PC->ProcessControls();
 }
 
 /****************************************************
@@ -268,6 +245,8 @@ void SDLWin::InitTextures()
 	TM->AddTexture("images/particle2_alpha.jpg","Particle2Alpha");
 	TM->AddTexture("images/mouse2.jpg", "MousePointer");
 	TM->AddTexture("images/mouse2_alpha.jpg", "MousePointerAlpha");
+	TM->AddTexture("images/HUD/HUD.jpg", "HUD");
+	TM->AddTexture("images/HUD/HUD_alpha.jpg", "HUD Alpha");
 }
 
 void SDLWin::InitGeometry()

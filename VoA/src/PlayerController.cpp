@@ -14,19 +14,14 @@ PlayerController::~PlayerController(void)
 {
 }
 
-void PlayerController::ProcessKeyboardEvent(SDL_Event *event)
+void PlayerController::ProcessControlEvent(SDL_Event *event)
 {
-	Entity *ent = SM->GetSceneByName("Main")->GetEntityByName("Player");
-	SM->BindScene("Main");
-	Ship *ship = (Ship *)SM->GetCurrentScene()->GetEntityByName("Player")->GetMeshByName("Player Ship");
-	ParticleSystem *lEngine = (ParticleSystem *)SM->GetCurrentScene()->GetEntityByName("Player")->GetMeshByName("LEngine");
-	ParticleSystem *rEngine = (ParticleSystem *)SM->GetCurrentScene()->GetEntityByName("Player")->GetMeshByName("REngine");
-	if(!ship || !lEngine || !rEngine)
-		return;
-	float rotSpeed=10.0f;
-	float vel = ship->GetThrottle();								// Get the ship's current throttle
 	switch(event->type)
 	{
+	case SDL_MOUSEMOTION:
+		mouse_x = event->motion.x;
+		mouse_y = event->motion.y;
+		break;
 	case SDL_KEYUP:
 		keys[event->key.keysym.sym] = false;
 		break;
@@ -35,7 +30,6 @@ void PlayerController::ProcessKeyboardEvent(SDL_Event *event)
 		{
 		case SDLK_ESCAPE:
 				Game->Pause();
-				Game->SwitchMode(GM_MAINMENU);
 			break;
 		case 'm':
 			if(WM->IsMouseGrabbed())
@@ -52,64 +46,147 @@ void PlayerController::ProcessKeyboardEvent(SDL_Event *event)
 	}
 }
 
-void PlayerController::ProcessKeyboardControls()
+void PlayerController::ProcessControls()
 {
 	if(Game->GetCurrentMode() == GM_PLAY)
 	{
-		Entity *ent = SM->GetSceneByName("Main")->GetEntityByName("Player");
-		SM->BindScene("Main");
-		Ship *ship = (Ship *)SM->GetCurrentScene()->GetEntityByName("Player")->GetMeshByName("Player Ship");
+		Ship *ship = (Ship *)SM->GetSceneByName("Main")->GetEntityByName("Player")->GetMeshByName("Player Ship");
 		float rotSpeed=10.0f;
-		float vel = ship->GetThrottle();
+		float maxspeed = 5.0f;
+		float acceleration = 0.5f;
+		glm::vec3 vel = ship->GetThrottle();
 	
 		if(keys[SDLK_RIGHT]) // If the right arrow key is pressed
 		{
-			ship->SetRotation(glm::vec3(0.0f,0.0f,+rotSpeed));			// Rotate the ship clockwise
-			//lEngine->SetRotation(lEngine->GetRotation()-glm::vec3(0.0f,0.0f,rotSpeed));			// Rotate the ship clockwise
-			//rEngine->SetRotation(rEngine->GetRotation()-glm::vec3(0.0f,0.0f,rotSpeed));			// Rotate the ship clockwise
+			ship->Rotate(glm::vec3(0.0f,0.0f,+rotSpeed));			// Rotate the ship clockwise
 		}
 	
 		if(keys[SDLK_LEFT]) // If the right arrow key is pressed
 		{
-			ship->SetRotation(glm::vec3(0.0f,0.0f,-rotSpeed));									// Rotate the ship clockwise
-			//lEngine->SetRotation(lEngine->GetRotation()-glm::vec3(0.0f,0.0f,rotSpeed));			// Rotate the ship clockwise
-			//rEngine->SetRotation(rEngine->GetRotation()-glm::vec3(0.0f,0.0f,rotSpeed));			// Rotate the ship clockwise
+			ship->Rotate(glm::vec3(0.0f,0.0f,-rotSpeed));									// Rotate the ship clockwise
 		}
 
-		if(keys[SDLK_UP])
+		if(keys['a'])
 		{
-			if(vel <= 1.75f)	// If the throttle is less than max
+			if(vel.x > -maxspeed)	// If the throttle is less than max
 			{
-				ship->SetThrottle(vel+.1f);								// Increase the throttle
-				//lEngine->SetStrength((vel+.1f)*(-35));
-				//rEngine->SetStrength((vel+.1f)*(-35));
+				vel.x -= 0.5f*acceleration;
 			}
-			char buf[255]={0};
-			sprintf(buf, "Velocity: %f",vel);
-			Error->NewError(buf);
-			// TODO: Add functionality for moving the ship around
+			else
+			{
+				vel.x = -maxspeed;
+			}
 		}
-		else
+
+		if(keys['d'])
 		{
-			// While the up key is not pressed
-			if(vel > 0.0f)		// Make sure that there is a throttle
+			if(vel.x < maxspeed)	// If the throttle is less than max
 			{
-				if(vel < 0.1)	// If the throttle is close to zero
-				{
-					ship->SetThrottle(0);								// Go ahead and set it to zero (no need to waste fuel)
-					//lEngine->SetStrength(0);
-					//rEngine->SetStrength(0);
-				}
-				else
-				{
-					ship->SetThrottle(vel-0.05f);						// Decrease throttle
-					//lEngine->SetStrength(vel-0.05f);
-					//rEngine->SetStrength(vel-0.05f);
-				}
+				vel.x += 0.5f*acceleration;
 			}
-			char buf[255]={0};
-			sprintf(buf, "Velocity: %f\tDirection: %f",vel,ship->GetDirection());
-			Error->NewError(buf);
+			else
+			{
+				vel.x = maxspeed;
+			}
 		}
+
+		if(!keys['a'] && !keys['d'])
+		{
+			if(vel.x > 0)
+				vel.x -= 0.05f;
+			else if(vel.x < 0)
+				vel.x += 0.05f;
+		}
+
+		if(keys['w'])
+		{
+			if(vel.y > -maxspeed)	// If the throttle is less than max
+			{
+				vel.y -= 0.5f*acceleration;
+			}
+			else
+			{
+				vel.y = -maxspeed;
+			}
+		}
+
+		if(keys['s'])
+		{
+			if(vel.y < maxspeed)	// If the throttle is less than max
+			{
+				vel.y += 0.5f*acceleration;
+			}
+			else
+			{
+				vel.y = maxspeed;
+			}
+		}
+
+		if(!keys['w'] && !keys['s'])
+		{
+			if(vel.y > 0)
+				vel.y -= 0.05f;
+			else if(vel.y < 0)
+				vel.y += 0.05f;
+		}
+
+		if(vel.x > 0 && vel.x < 0.1f)	// If the throttle is close to zero
+		{
+			vel.x=0;											// Go ahead and set it to zero (no need to waste fuel)
+		}
+		if(vel.y > 0 && vel.y < 0.1f)	// If the throttle is close to zero
+		{
+			vel.y=0;											// Go ahead and set it to zero (no need to waste fuel)
+		}
+		
+		if(vel.x < 0 && vel.x > -0.1f)	// If the throttle is close to zero
+		{
+			vel.x=0;											// Go ahead and set it to zero (no need to waste fuel)
+		}
+		if(vel.y < 0 && vel.y > -0.1f)	// If the throttle is close to zero
+		{
+			vel.y=0;											// Go ahead and set it to zero (no need to waste fuel)
+		}
+		
+		glm::vec3 pos = ship->GetPosition();
+		
+		if(pos.x > WM->GetWindowWidth()+16.0f)
+		{
+			pos.x = -16.0f;
+			ship->SetPosition(pos);
+		}
+		else if(pos.x < -16.0f)
+		{
+			pos.x = WM->GetWindowWidth()+16.0f;
+			ship->SetPosition(pos);
+		}
+
+		if(pos.y > WM->GetWindowHeight()+16.0f)
+		{
+			pos.y = -16.0f;
+			ship->SetPosition(pos);
+		}
+		else if(pos.y < -16.0f)
+		{
+			pos.y = WM->GetWindowHeight()+16.0f;
+			ship->SetPosition(pos);
+		}
+
+		ship->SetThrottle(vel);
+		ship->Translate(vel);
+		pos = ship->GetPosition();
+
+		glm::vec3 rot = glm::vec3(0,0,-(atan2(mouse_x-pos.x,mouse_y-pos.y)+3.14159)*180/3.14159);
+		ship->SetRotation(rot);
 	}
+}
+
+int PlayerController::GetMouseX()
+{
+	return mouse_x;
+}
+
+int PlayerController::GetMouseY()
+{
+	return mouse_y;
 }

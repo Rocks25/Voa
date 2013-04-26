@@ -29,7 +29,6 @@ class SDLWin
         void Loop();		// Main Loop Processing
         void Render();
 		void RenderPostProcessing();
-        void Events(SDL_Event *event);
 		Uint32 TimeLeft();
 
 		// Misc Routines
@@ -44,7 +43,6 @@ class SDLWin
 		bool fullscreen;
 		bool Perspective;
 
-		int _mouseX, _mouseY;
 		float _blurX, _blurY, _blurXrate, _blurYrate;
 		bool _blurXinc, _blurYinc;
 };

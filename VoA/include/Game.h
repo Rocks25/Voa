@@ -15,6 +15,7 @@
 #include "PlayerController.h"
 #include "Error.h"
 #include "GlobalMatrices.h"
+#include <SDL_mixer.h>
 
 class GameManager
 {
@@ -22,17 +23,20 @@ private:
 	bool _Running;
 	int _Mode;
 	bool _GameStatus;
+	bool _DebugMode;
 public:
 	GameManager(void);
 	~GameManager(void);
 	int GetCurrentMode();
 	void SwitchMode(int mode);
-	void ProcessKeyboardEvent(SDL_Event *event);
+	void ProcessControlEvent(SDL_Event *event);
 	void Run();
 	void Render();
 	void Pause();
 	void StartNewGame();
 	bool HasGameStarted();
+	bool IsDebugMode();
+	void ToggleDebugMode();
 };
 
 extern GameManager *Game;

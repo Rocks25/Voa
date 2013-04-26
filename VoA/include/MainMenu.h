@@ -16,6 +16,7 @@ public:
 	void RenderMainMenu();
 	void RenderOptionsMenu();
 	virtual void Init();
+	void InitAudio();
 	void Cleanup();
 	void Resize();
 	void SelectNext();
@@ -25,6 +26,9 @@ public:
 	int GetSelection();
 	int GetModeIndex();
 	void SetSelection(int index);
+	void StopMusic();
+	void StartMusic();
+	void PauseMusic();
 
 private:
 	void InitTextures();
@@ -40,8 +44,15 @@ private:
 	glm::vec3 dir1;
 	glm::vec3 dir2;
 	glm::vec2 ScreenCenter;
+	std::vector<TTF_Font *> fonts;
 	int selection;
 	int modeselected;
 	bool _Initialized;
+	float fade;
+
+	//Audio Files
+	Mix_Music *_sMusic;
+	Mix_Chunk *_sMenuItemChanged;
+	Mix_Chunk *_sMenuItemSelected;
 };
 

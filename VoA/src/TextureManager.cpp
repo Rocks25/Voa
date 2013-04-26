@@ -64,7 +64,7 @@ bool TextureManager::AddTexture(char *filename,char *name)
 				{
 					char buf[512];
 					sprintf(buf,"Duplicate Filename '%s'!",filename);
-					Error->NewError(buf);
+					//Error->NewError(buf);
 					_Textures[i].names.push_back(name);
 					return true;
 				}
@@ -81,7 +81,7 @@ bool TextureManager::AddTexture(char *filename,char *name)
 	{
 		char buf[256]={0};
 		sprintf_s(buf,"Error loading image. '%s'!",IMG_GetError());
-		Error->NewError(buf);
+		//Error->NewError(buf);
 		return false;
 	}
 	SDL_PixelFormat *format = a->format;
@@ -116,9 +116,6 @@ bool TextureManager::BindTexture(char *name)
 		}
 	}
 	glBindTexture(GL_TEXTURE_2D, _Textures[0].pixels);
-	char buf[512] = {0};
-	sprintf(buf,"Cannot Find Texture '%s'!.",name);
-	Error->NewError(&buf[0]);
 	return false;
 }
 

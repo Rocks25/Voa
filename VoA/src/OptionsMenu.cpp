@@ -63,7 +63,7 @@ void OptionsMenu::Render()
 	GLShaderProgram *program = WM->GetRenderer()->GetCurrentShader();
 	if(!IsInitialized())
 	{
-		Error->NewError("OptionsMenu class was not initialized");
+		//Error->NewError("OptionsMenu class was not initialized");
 		return;
 	}
 

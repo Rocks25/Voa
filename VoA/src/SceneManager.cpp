@@ -52,7 +52,7 @@ bool SceneManager::BindScene(char *name)
 		if(_Scenes[i]->GetName() == name)
 		{
 			_CurrScene = _Scenes[i];
-			return true;;
+			return true;
 		}
 	}
 	return false;
@@ -74,7 +74,7 @@ Scene *SceneManager::GetSceneByName(char *name)
 	}
 	char buf[255] = {0};
 	sprintf(buf, "Could not find Scene '%s'!",name);
-	Error->NewError(buf);
+	//Error->NewError(buf);
 	return _CurrScene;
 }
 

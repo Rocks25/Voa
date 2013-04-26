@@ -1,6 +1,7 @@
 #include "../include/Font.h"
 #include "../include/Plane.h"
 #include "../include/sdl_invert.h"
+#include "../include/TextureManager.h"
 
 Font::Font()
 {
@@ -53,8 +54,9 @@ void Font::Render(char *text,const char *fontpath, Color color, int ptsize)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);	
 
 	/* prepare to render our texture */
-	glEnable(GL_TEXTURE_2D);
+	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, texture);
+	WM->GetRenderer()->GetCurrentShader()->SetUniformValue("tex",0);
 	glColor4f(color.r/255.0f, color.g/255.0f, color.b/255.0f, color.a/255.0f);
 	
 	/* Draw a quad at location */
@@ -67,6 +69,7 @@ void Font::Render(char *text,const char *fontpath, Color color, int ptsize)
 	SDL_FreeSurface(initial);
 	SDL_FreeSurface(intermediary);
 	glDeleteTextures(1, &texture);
+	TTF_CloseFont(font);
 }
 
 int Font::NextPowerOfTwo(int x)

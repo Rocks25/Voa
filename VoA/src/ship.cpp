@@ -13,7 +13,6 @@
 Ship::Ship(float size, const char *name) : Mesh(name)
 {
     this->size = size;
-	throttle=0.0f;
 }
 Ship::~Ship()
 {
@@ -62,7 +61,7 @@ void Ship::Render()
 	TM->BindTexture("Ship_Alpha");
 	GMat->UpdateShader();
 
-	Plane::Render(-128/2.0f,-64/2.0f,(float)128,(float)64);
+	Plane::Render(-158/2.0f,-110/2.0f,(float)158,(float)110);
 
 	//GMat->ModelMatrix()->PopMatrix();
 }
@@ -90,12 +89,12 @@ void Ship::SetSize(float size)
     //pEngineR.SetSize(newsize_p);
 }
 
-void Ship::SetThrottle(float throt)
+void Ship::SetThrottle(glm::vec3 throt)
 {
 	throttle=throt;
 }
 
-float Ship::GetThrottle()
+glm::vec3 Ship::GetThrottle()
 {
 	return throttle;
 }
@@ -111,7 +110,7 @@ glm::vec3 Ship::GetBoundingBox()
 	return glm::vec3(64,64,0);
 }
 
-void Ship::SetRotation(glm::vec3 rot)
+void Ship::Rotate(glm::vec3 rot)
 {
 	_Rotation += rot;
 	Mesh *dummy = SM->GetSceneByName("Main")->GetEntityByName("Player")->GetMeshByName("ShipDummy");

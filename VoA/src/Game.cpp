@@ -25,6 +25,7 @@ GameManager::GameManager(void)
 	_GameStatus = false;
 	_Running = false;
 	_Mode = GM_MAINMENU;
+	_DebugMode = false;
 }
 
 
@@ -49,12 +50,12 @@ void GameManager::SwitchMode(int mode)
 	_Mode=mode;
 }
 
-void GameManager::ProcessKeyboardEvent(SDL_Event *event)
+void GameManager::ProcessControlEvent(SDL_Event *event)
 {
 	if(_Mode == GM_MAINMENU || _Mode == GM_OPTIONSMENU)
 		MenuController::ProcessKeyboardEvents(event);
 	else if(_Mode == GM_PLAY)
-		PC->ProcessKeyboardEvent(event);
+		PC->ProcessControlEvent(event);
 }
 
 void GameManager::Run()
@@ -78,6 +79,7 @@ void GameManager::StartNewGame()
 	}
 	Entity *ent = new Entity("Player");
 	Plane *dummydir = new Plane("ShipDummy",16,16);
+	Plane *HUD = new Plane("HUD",WM->GetWindowWidth(),WM->GetWindowHeight(),"HUD","HUD Alpha");
 	Ship *ship = new Ship(1.0f,"Player Ship");
 	float size = ship->GetSize();
 	float width = ship->GetBoundingBox().x;
@@ -109,6 +111,8 @@ void GameManager::StartNewGame()
 	ent->AddMesh(re);
 	ent->AddMesh(ship);
 	ent->AddMesh(dummydir);
+	ent->AddMesh(HUD);
+
 
 	ent->SetPosition(0,0,0);
 
@@ -122,6 +126,8 @@ void GameManager::StartNewGame()
 
 void GameManager::Pause()
 {
+	// Create Menu
+
 	MainMenu *mainmenu = new MainMenu("Main Menu");
 	SM->AddElement(mainmenu);
 	SM->GetCurrentScene()->Init();
@@ -131,4 +137,14 @@ void GameManager::Pause()
 	SM->GetCurrentScene()->Init();
 
 	Game->SwitchMode(GM_MAINMENU);
+}
+
+void GameManager::ToggleDebugMode()
+{
+	_DebugMode = !_DebugMode;
+}
+
+bool GameManager::IsDebugMode()
+{
+	return _DebugMode;
 }

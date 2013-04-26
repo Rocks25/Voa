@@ -53,7 +53,7 @@ void Mesh::SetPosition(glm::vec3 pos)
 
 void Mesh::SetRotation(glm::vec3 rot)
 {
-	_Rotation += rot;
+	_Rotation = rot;
 	rot = sqrt(rot.x*rot.x+rot.y*rot.y)/rot;
 	SetDirection(rot);
 	/*pEngineL.SetPositionMat(tmpPos*pEngineL.GetPositionMat());

@@ -72,7 +72,7 @@ Mesh *Entity::GetMeshByName(const char *name)
 	}
 	char buf[255] = {0};
 	sprintf(buf, "Could not find mesh '%s'!",name);
-	Error->NewError(buf);
+	//Error->NewError(buf);
 	return 0;
 }
 
