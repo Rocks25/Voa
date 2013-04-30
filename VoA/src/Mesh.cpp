@@ -4,6 +4,7 @@
 Mesh::Mesh(const char *name)
 {
 	_Name = name;
+	SetScale(glm::vec3(1,1,1));
 }
 
 
@@ -94,4 +95,14 @@ glm::vec3 Mesh::GetPosition()
 glm::vec3 Mesh::GetRotation()
 {
 	return _Rotation;
+}
+
+glm::vec3 Mesh::GetScale()
+{
+	return _Scale;
+}
+
+float Mesh::GetCollisionRadius()
+{
+	return 0.0f;
 }

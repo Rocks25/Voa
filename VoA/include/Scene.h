@@ -23,6 +23,7 @@ public:
 	virtual Entity *GetEntityByName(const char *name);
 	virtual void Render();
 	virtual char *GetName();
+	void CheckCollisions();
 	
 protected:
 	char *_Name;

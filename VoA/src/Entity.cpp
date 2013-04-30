@@ -80,6 +80,11 @@ void Entity::Cleanup()
 {
 	if(!_Meshes.empty())
 	{
+		for(int i=0; i<_Meshes.size(); i++)
+		{
+			_Meshes[i]->Cleanup();
+			delete _Meshes[i];
+		}
 		_Meshes.clear();
 	}
 }
@@ -129,6 +134,7 @@ void Entity::Render()
 		GMat->ModelMatrix()->Rotate(_Meshes[i]->GetRotation().x,glm::vec3(1,0,0));
 		GMat->ModelMatrix()->Rotate(_Meshes[i]->GetRotation().y,glm::vec3(0,1,0));
 		GMat->ModelMatrix()->Rotate(_Meshes[i]->GetRotation().z,glm::vec3(0,0,1));
+		GMat->ModelMatrix()->Scale(_Meshes[i]->GetScale());
 		GMat->UpdateShader();
 		_Meshes[i]->Render();
 	}

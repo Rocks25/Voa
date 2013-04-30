@@ -18,6 +18,8 @@ public:
     glm::vec3 GetPosition();
     glm::vec3 GetDirection();
     glm::vec3 GetRotation();
+	glm::vec3 GetScale();
+	virtual float GetCollisionRadius();
     virtual void SetPosition(glm::vec3 pos);
     virtual void SetDirection(glm::vec3 dir);
     virtual void SetRotation(glm::vec3 rot);
@@ -28,9 +30,6 @@ public:
 
 protected:
 	const char *_Name;
-	GLfloat *_Vertices;
-	GLint *_TexCoords;
-	GLubyte *_Indeces;
 	glm::vec3 _Rotation;
 	glm::vec3 _Position;
 	glm::vec3 _Scale;

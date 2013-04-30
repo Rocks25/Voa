@@ -16,7 +16,6 @@ public:
 	void RenderMainMenu();
 	void RenderOptionsMenu();
 	virtual void Init();
-	void InitAudio();
 	void Cleanup();
 	void Resize();
 	void SelectNext();
@@ -26,9 +25,6 @@ public:
 	int GetSelection();
 	int GetModeIndex();
 	void SetSelection(int index);
-	void StopMusic();
-	void StartMusic();
-	void PauseMusic();
 
 private:
 	void InitTextures();

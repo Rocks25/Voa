@@ -24,6 +24,9 @@ private:
 	int _Mode;
 	bool _GameStatus;
 	bool _DebugMode;
+	Uint32 _TimeElapsed;
+	Uint32 _LastTime;
+	SDL_TimerID _GameTimer;
 public:
 	GameManager(void);
 	~GameManager(void);
@@ -31,12 +34,15 @@ public:
 	void SwitchMode(int mode);
 	void ProcessControlEvent(SDL_Event *event);
 	void Run();
+	void InitResources();
+	void InitMusic();
 	void Render();
 	void Pause();
 	void StartNewGame();
 	bool HasGameStarted();
 	bool IsDebugMode();
 	void ToggleDebugMode();
+	Uint32 GetTimeElapsed();
 };
 
 extern GameManager *Game;

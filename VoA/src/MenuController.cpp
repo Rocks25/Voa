@@ -3,6 +3,7 @@
 #include "..\include\WindowManager.h"
 #include "..\include\MainMenu.h"
 #include "..\include\OptionsMenu.h"
+#include "..\include\SoundManager.h"
 
 
 MenuController::MenuController(void)
@@ -56,25 +57,27 @@ void MenuController::ProcessMainMenu(SDL_Event *event)
 			{
 				if(selected==0)
 				{
+					Sounds->StartSound("MenuStartGame");
 					SM->RemoveElement("Main Menu");
 					SM->RemoveElement("Options Menu");
 					Game->SwitchMode(GM_PLAY);			// Back to Game
-					menu->StopMusic();
 				}
 				else if(selected==1)
 				{
+					Sounds->StartSound("MenuStartGame");
 					SM->RemoveElement("Main Menu");
 					SM->RemoveElement("Options Menu");
 					Game->StartNewGame();				// Start a new Game
-					menu->StopMusic();
 				}
 				else if(selected==2)
 				{
+					Sounds->StartSound("MenuExecute");
 					Game->SwitchMode(GM_OPTIONSMENU);	// Go to Options Menu
 					menu->SetSelection(0);
 				}
 				else
 				{
+					Sounds->StartSound("MenuExecute");
 					WM->Quit();							// End main loop
 				}
 			}
@@ -82,19 +85,22 @@ void MenuController::ProcessMainMenu(SDL_Event *event)
 			{
 				if(selected==0)
 				{
+					Sounds->StartSound("MenuStartGame");
 					SM->RemoveElement("Main Menu");
 					SM->RemoveElement("Options Menu");
 					Game->StartNewGame();			// Back to Game
-					menu->StopMusic();
 				}
 				else if(selected==1)
 				{
+					Sounds->StartSound("MenuExecute");
 					Game->SwitchMode(GM_OPTIONSMENU);	// Go to Options Menu
 					menu->SetSelection(0);
 				}
 				else
 				{
-					menu->StopMusic();
+					Sounds->StartSound("MenuQuit");
+					Sounds->StopMusic();
+					SDL_Delay(500);
 					WM->Quit();							// End main loop
 				}
 			}
@@ -153,6 +159,7 @@ void MenuController::ProcessOptionsMenu(SDL_Event *event)
 			}
 			break;
 		case SDLK_RETURN:
+			Sounds->StartSound("MenuExecute");
 			if(selected==0)
 			{
 				WM->ToggleFullscreen();

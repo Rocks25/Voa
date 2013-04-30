@@ -2,6 +2,7 @@
 #include "../include/Font.h"
 #include "../include/TextureManager.h"
 #include "../include/WindowManager.h"
+#include "../include/SoundManager.h"
 #include <time.h>
 
 MainMenu::MainMenu(char *name) : Scene(name)
@@ -28,7 +29,6 @@ void MainMenu::Cleanup()
 
 void MainMenu::Init()
 {
-	srand(time(NULL));
 	_Initialized=true;
 	int width = WM->GetWindowWidth();
 	int height = WM->GetWindowHeight();
@@ -55,7 +55,6 @@ void MainMenu::Init()
 	a1rot=rand()%100/100.0f*180;
 	a2rot=rand()%100/100.0f*180;
 	InitTextures();
-	InitAudio();
 }
 
 void MainMenu::Render()
@@ -97,7 +96,7 @@ void MainMenu::Render()
 		alpha1+=arate1;
 		char name1[255] = {0};
 		char name2[255] = {0};
-		sprintf(name1,"Rock%d",rand()%7+1);
+		sprintf(name1,"Rock%d",rand()%6+1);
 		objects[0]->SetDiffuseTexture(name1);
 		sprintf(name2, "%s Alpha",name1);
 		objects[0]->SetAlphaTexture(name2);
@@ -142,7 +141,7 @@ void MainMenu::Render()
 		alpha2+=arate2;
 		char name1[255] = {0};
 		char name2[255] = {0};
-		sprintf(name1,"Rock%d",rand()%7+1);
+		sprintf(name1,"Rock%d",rand()%6+1);
 		objects[1]->SetDiffuseTexture(name1);
 		sprintf(name2, "%s Alpha",name1);
 		objects[1]->SetAlphaTexture(name2);
@@ -181,9 +180,9 @@ void MainMenu::Render()
     TM->BindTexture("White");
 
 	Color col(255,255,255);
-	int size = (int)(48/800.0f*height);
-	char *font = "Text/simplicity";
-	Font::Render("Variations on Asteroids","Title/Dodgv2ci",col,size);
+	int size = (int)(128/800.0f*height);
+	char *font = "Text/Brain Flower";
+	Font::Render("Doodle Dodger",font,col,size);
 	if(Game->GetCurrentMode() == GM_MAINMENU)
 		RenderMainMenu();
 	else if(Game->GetCurrentMode() == GM_OPTIONSMENU)
@@ -213,24 +212,6 @@ void MainMenu::Resize()
 	objects.push_back(p3);
 }
 
-void MainMenu::StartMusic()
-{
-}
-
-void MainMenu::StopMusic()
-{
-	Mix_FadeOutMusic(2000);
-}
-
-void MainMenu::PauseMusic()
-{
-}
-
-void MainMenu::InitAudio()
-{
-	_sMusic = Mix_LoadMUS( "Audio/Music/Groove_Grove.ogg" );
-	Mix_FadeInMusic(_sMusic,-1,2000);
-}
 
 void MainMenu::InitTextures()
 {
@@ -238,16 +219,16 @@ void MainMenu::InitTextures()
 	TM->AddTexture("images/Rocks/Rock1_alpha.jpg", "Rock1 Alpha");
 	TM->AddTexture("images/Rocks/Rock2.jpg", "Rock2");
 	TM->AddTexture("images/Rocks/Rock2_alpha.jpg", "Rock2 Alpha");
-    TM->AddTexture("images/Rocks/Rock1.jpg", "Rock3");
-	TM->AddTexture("images/Rocks/Rock1_alpha.jpg", "Rock3 Alpha");
-	TM->AddTexture("images/Rocks/Rock2.jpg", "Rock4");
-	TM->AddTexture("images/Rocks/Rock2_alpha.jpg", "Rock4 Alpha");
-    TM->AddTexture("images/Rocks/Rock1.jpg", "Rock5");
-	TM->AddTexture("images/Rocks/Rock1_alpha.jpg", "Rock5 Alpha");
-	TM->AddTexture("images/Rocks/Rock2.jpg", "Rock6");
-	TM->AddTexture("images/Rocks/Rock2_alpha.jpg", "Rock6 Alpha");
-    TM->AddTexture("images/Rocks/Rock1.jpg", "Rock7");
-	TM->AddTexture("images/Rocks/Rock1_alpha.jpg", "Rock7 Alpha");
+    TM->AddTexture("images/Rocks/Rock3.jpg", "Rock3");
+	TM->AddTexture("images/Rocks/Rock3_alpha.jpg", "Rock3 Alpha");
+	TM->AddTexture("images/Rocks/Rock4.jpg", "Rock4");
+	TM->AddTexture("images/Rocks/Rock4_alpha.jpg", "Rock4 Alpha");
+    TM->AddTexture("images/Rocks/Rock5.jpg", "Rock5");
+	TM->AddTexture("images/Rocks/Rock5_alpha.jpg", "Rock5 Alpha");
+	TM->AddTexture("images/Rocks/Rock6.jpg", "Rock6");
+	TM->AddTexture("images/Rocks/Rock6_alpha.jpg", "Rock6 Alpha");
+    TM->AddTexture("images/Rocks/Rock7.jpg", "Rock7");
+	TM->AddTexture("images/Rocks/Rock7_alpha.jpg", "Rock7 Alpha");
 	TM->AddTexture("images/MainMenu/Grid_Back.jpg", "Background");
 	TM->AddTexture("images/particle2_alpha.jpg", "Particle2Alpha");
 	TM->AddTexture("images/MainMenu/green-hd-14.jpg", "GreenHD");
@@ -260,6 +241,7 @@ bool MainMenu::IsInitialized()
 
 void MainMenu::SelectNext()
 {
+	Sounds->StartSound("MenuClick");
 	selection++;
 	if(Game->HasGameStarted())
 	{
@@ -307,6 +289,7 @@ void MainMenu::SelectNext()
 
 void MainMenu::SelectPrev()
 {
+	Sounds->StartSound("MenuClick");
 	selection--;
 	if(Game->HasGameStarted())
 	{
@@ -332,7 +315,7 @@ void MainMenu::SelectPrev()
 		if(selection < 0)
 			selection = 2;
 
-		if(!WM->IsFullscreen())
+		if(!WM->IsFullscreen() && Game->GetCurrentMode() == GM_OPTIONSMENU)
 		{
 			if(selection == 1)
 				selection = 0;
@@ -387,12 +370,6 @@ void MainMenu::RenderMainMenu()
 		GMat->ModelMatrix()->Translate(glm::vec3(width/1680.0f*1000,height/1050.0f*725,0));
 		GMat->UpdateShader();
 		Font::Render("Quit Game", font, col,size);
-	
-		glColor4f(0.0f,0.0f,0.0f,0.5f);
-		glActiveTexture(GL_TEXTURE0);
-		TM->BindTexture("Background");
-		glActiveTexture(GL_TEXTURE1);
-		TM->BindTexture("White");
 	}
 	else
 	{
@@ -415,13 +392,13 @@ void MainMenu::RenderMainMenu()
 		GMat->ModelMatrix()->Translate(glm::vec3(width/1680.0f*1000,height/1050.0f*825,0));
 		GMat->UpdateShader();
 		Font::Render("Quit Game", font, col,size);
-	
-		glColor4f(0.0f,0.0f,0.0f,0.5f);
-		glActiveTexture(GL_TEXTURE0);
-		TM->BindTexture("Background");
-		glActiveTexture(GL_TEXTURE1);
-		TM->BindTexture("White");
 	}
+	
+	glColor4f(0.0f,0.0f,0.0f,0.5f);
+	glActiveTexture(GL_TEXTURE0);
+	TM->BindTexture("Background");
+	glActiveTexture(GL_TEXTURE1);
+	TM->BindTexture("White");
 
 	GMat->ModelMatrix()->LoadIdentity();
 	GMat->ModelMatrix()->Translate(glm::vec3(width/1680.0f*1000,height/1050.0f*(525+100*selection),0));

@@ -75,7 +75,7 @@ Scene *SceneManager::GetSceneByName(char *name)
 	char buf[255] = {0};
 	sprintf(buf, "Could not find Scene '%s'!",name);
 	//Error->NewError(buf);
-	return _CurrScene;
+	return 0;
 }
 
 char *SceneManager::GetCurrentSceneName()

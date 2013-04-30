@@ -14,7 +14,6 @@
 class Ship : public Mesh
 {
 private:
-    float size;
 	glm::vec3 _Velocity;
 	glm::vec3 throttle;
 	GLuint _nVBOVertices;
@@ -29,8 +28,9 @@ public:
 	virtual void Render();
     virtual void Init();
 	void SetThrottle(glm::vec3 throt);
-    float GetSize();
+	virtual float GetCollisionRadius();
     void SetSize(float size);
+	void ResetPosition();
 	glm::vec3 GetThrottle();
 	glm::vec3 GetBoundingBox();
 	void Rotate(glm::vec3 pos);

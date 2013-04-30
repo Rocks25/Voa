@@ -6,6 +6,8 @@
 #include "../include/Game.h"
 #include "../include/OptionsMenu.h"
 #include "../include/Error.h"
+#include "../include/SoundManager.h"
+#include "../include/AsteroidSystem.h"
 /****************************************************
 *	Name: SDLWin()									*
 *	Description: Constructor.						*
@@ -59,9 +61,10 @@ void SDLWin::Render()
 		glActiveTexture(GL_TEXTURE1);
 		TM->BindTexture("White");
 		Plane::Render(0,0,width, height);
-		//SM->RenderElement("Main");												// Render Game
+
+		SM->RenderElement("Main");												// Render Game
 		
-		/*GMat->ModelMatrix()->LoadIdentity();
+		GMat->ModelMatrix()->LoadIdentity();
 
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glActiveTexture(GL_TEXTURE0);
@@ -70,7 +73,7 @@ void SDLWin::Render()
 		glActiveTexture(GL_TEXTURE1);
 		TM->BindTexture("MousePointerAlpha");
 
-		Plane::Render((float)PC->GetMouseX(),(float)PC->GetMouseY(),50.0f,50.0f);*/
+		Plane::Render((float)PC->GetMouseX(),(float)PC->GetMouseY(),50.0f,50.0f);
 
 	}
 	
@@ -128,20 +131,39 @@ void SDLWin::Render()
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 	}
 
-	//WM->GetRenderer()->BindShaderProgram("Text");
+	GMat->ModelMatrix()->LoadIdentity();
+	GMat->UpdateShader();
+	glColor4f(0.0f,0.0f,0.0f,0.5f);
+	glActiveTexture(GL_TEXTURE0);
+	TM->BindTexture("Background");
+	glActiveTexture(GL_TEXTURE1);
+	TM->BindTexture("White");
+	Plane::Render(0,0,250/800.0f*width,64/600.0f*height);
+	
+	WM->GetRenderer()->BindShaderProgram("Text");
+	glActiveTexture(GL_TEXTURE0);
+	TM->BindTexture("White");
+	glActiveTexture(GL_TEXTURE1);
+	TM->BindTexture("White");
+	GMat->ModelMatrix()->LoadIdentity();
+	GMat->UpdateShader();
+	Font::Render("Now Playing:","Text/ThrowMyHandsUpintheAir",Color(255,255,255,255),24);
+	GMat->ModelMatrix()->Translate(0,32,0);
+	GMat->UpdateShader();
+	Font::Render(Sounds->GetCurrSongName(),"Text/ThrowMyHandsUpintheAir",Color(255,255,255,255),24);
 
-	//if(Game->IsDebugMode())
-	//{
-	//	glColor4f(1.0f,0.0f,0.0f,1.0f);
-	//	GMat->ModelMatrix()->Translate(250.0f,0,0);
-	//	GMat->UpdateShader();
-	//	//Error->PrintErrors();
-	//	GMat->ModelMatrix()->PopMatrix();
-	//	glColor3f(1.0f,1.0f,1.0f);
+	if(Game->IsDebugMode())
+	{
+		glColor4f(1.0f,0.0f,0.0f,1.0f);
+		GMat->ModelMatrix()->Translate(250.0f,0,0);
+		GMat->UpdateShader();
+		//Error->PrintErrors();
+		GMat->ModelMatrix()->PopMatrix();
+		glColor3f(1.0f,1.0f,1.0f);
 
-	//	ModeDisplay();
-	//}
-	//IsGLErrors("Render()");
+		//ModeDisplay();
+	}
+	IsGLErrors("Render()");
 	SDL_GL_SwapBuffers();		//Swap buffers
 }
 
@@ -153,7 +175,9 @@ void SDLWin::Render()
 
 int SDLWin::Run()
 {
-	WM->CreateSDLWindow() && WM->InitOpenGL();					// Initialize SDL and OpenGL
+	WM->CreateSDLWindow();										// Initialize SDL
+	WM->InitOpenGL();											// Initialize OpenGL
+	Game->InitResources();
 	Game->Pause();												// Switch to Menu Mode
 	WM->GetRenderer()->Init();									// Initialize Renderer
 	InitGeometry();												// Create Menus
@@ -202,6 +226,14 @@ void SDLWin::Cleanup()
 void SDLWin::Loop()
 {
 	PC->ProcessControls();
+	if(Game->GetCurrentMode() == GM_PLAY)
+	{
+		AsteroidSystem *as = (AsteroidSystem *)SM->GetSceneByName("Main")->GetEntityByName("Asteroids");
+		as->Update();
+		as->Spawn();
+		if(SM->GetSceneByName("Main"))
+			SM->GetSceneByName("Main")->CheckCollisions();
+	}
 }
 
 /****************************************************

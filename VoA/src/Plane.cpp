@@ -10,6 +10,7 @@ Plane::Plane(char *name, float width,float height, char *difftex, char *alphatex
 	_height = height;
 	strncpy(_difftex, difftex, 254);
 	strncpy(_alphatex, alphatex,254);
+	ox=oy=0;
 }
 
 
@@ -34,10 +35,10 @@ void Plane::Render()
 
 	glBegin(GL_TRIANGLE_STRIP);             // Build Quad From A Triangle Strip
 
-	glTexCoord2d(1,1); glVertex3f(_width,_height,0.0f); // Top Right
-	glTexCoord2d(0,1); glVertex3f(  0.0f,_height,0.0f); // Top Left
-	glTexCoord2d(1,0); glVertex3f(_width,   0.0f,0.0f); // Bottom Right
-	glTexCoord2d(0,0); glVertex3f(  0.0f,   0.0f,0.0f); // Bottom Left
+	glTexCoord2d(1,1); glVertex3f(ox+_width,oy+_height,0.0f); // Top Right
+	glTexCoord2d(0,1); glVertex3f(       ox,oy+_height,0.0f); // Top Left
+	glTexCoord2d(1,0); glVertex3f(ox+_width,        oy,0.0f); // Bottom Right
+	glTexCoord2d(0,0); glVertex3f(       ox,        oy,0.0f); // Bottom Left
 
 	glEnd();                        // Done Building Triangle Strip
 }
@@ -68,16 +69,21 @@ void Plane::RenderInverted(float x, float y, float width, float height)
 
 void Plane::SetDiffuseTexture(char *name)
 {
-	if(TM->TextureExists(name))
-	{
-		strncpy(_difftex,name,254);
-	}
+	strncpy(_difftex,name,254);
 }
 
 void Plane::SetAlphaTexture(char *name)
 {
-	if(TM->TextureExists(name))
-	{
-		strncpy(_alphatex,name,254);
-	}
+	strncpy(_alphatex,name,254);
+}
+
+void Plane::SetOrigin(float x, float y)
+{
+	ox = x;
+	oy = y;
+}
+
+float Plane::GetCollisionRadius()
+{
+	return std::max(_Scale.x,_Scale.y);
 }
